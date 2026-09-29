@@ -118,10 +118,12 @@ lib/
   api.ts         the only place that calls fetch
   schemas.ts     Zod, mirroring the API
   messages.es.ts error code → Spanish text
-middleware.ts    route guard. At the root, a sibling of app/
+proxy.ts         route guard. At the root, a sibling of app/
 ```
 
-`middleware.ts` belongs at the project root. Placed inside `app/`, Next does not run it:
+`proxy.ts` belongs at the project root. Next 16 renamed the old `middleware.ts` to
+`proxy.ts`; the name has nothing to do with the rewrite that proxies API calls. Placed
+inside `app/`, Next does not run it:
 the page loads, everything appears to work, and the guard protects nothing.
 
 ---
@@ -191,6 +193,6 @@ Two caught during design, both of which would have failed silently rather than l
 | What it claimed | Why it was wrong |
 |---|---|
 | `NEXT_PUBLIC_API_URL` as the proxy destination | That prefix publishes the value in the browser bundle. The rewrite runs on the server; the variable must not be public |
-| `middleware.ts` inside `app/` | Next does not run it there. No error is raised — the route guard simply never executes |
+| `proxy.ts` inside `app/` | Next does not run it there. No error is raised — the route guard simply never executes |
 
 `<KEEP ADDING as they appear during development>`

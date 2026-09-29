@@ -56,8 +56,9 @@ lib/
   api.ts                 the ONLY place that calls fetch
   schemas.ts             Zod
   messages.es.ts         error code → Spanish text
-middleware.ts            route guard. AT THE PROJECT ROOT, a sibling of app/ —
-                         inside app/ Next does not run it
+proxy.ts                 route guard (Next 16 renamed middleware.ts to proxy.ts).
+                         AT THE PROJECT ROOT, a sibling of app/ — inside app/ Next
+                         does not run it. Not to be confused with the rewritediff --git a/README.md b/README.md
 next.config.js           the rewrite
 ```
 

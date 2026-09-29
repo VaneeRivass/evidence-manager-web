@@ -31,14 +31,17 @@ exactly one file.
 
 ### RF-14 · The guard runs on the server
 
-Next's `middleware.ts` runs before the page is sent. With no session cookie the browser
-gets a redirect and never downloads the protected page.
+Next's `proxy.ts` runs before the page is sent. With no session cookie the browser gets a
+redirect and never downloads the protected page.
+
+Next 16 renamed this file, formerly `middleware.ts`. Despite the name, it is the route
+guard — not the rewrite in section 4, which is what this project calls "the proxy".
 
 It is **not a security boundary** — that lives in the API, which checks session and
 ownership on every request. It is better behaviour: no flash of content that should not
 have been shown.
 
-`middleware.ts` lives at the project root, a sibling of `app/`. Placed inside `app/` Next
+`proxy.ts` lives at the project root, a sibling of `app/`. Placed inside `app/` Next
 does not run it, the page loads, everything appears to work, and the guard protects
 nothing.
 
