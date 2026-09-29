@@ -18,6 +18,7 @@ English.
 |---|---|
 | Framework | Next.js, App Router · TypeScript, strict |
 | Server state | TanStack Query |
+| HTTP client | axios |
 | Forms | React Hook Form with Zod |
 | Styling | Tailwind · shadcn/ui · lucide-react |
 | Notices | sonner |
@@ -89,7 +90,7 @@ omission.
 ```
 The API responds   Set-Cookie: session=…; HttpOnly; Secure; SameSite=Lax
 The browser        stores it. JavaScript CANNOT read it
-This application   fetch('/api/cases')  → the browser attaches it by itself
+This application   api.get('/cases')    → the browser attaches it by itself
 ```
 
 Every call is relative and goes through the rewrite in `next.config.js`, so the browser
@@ -115,13 +116,15 @@ components/
 hooks/
   useCases · useFileUpload · useSession
 lib/
-  api.ts         the only place that calls fetch
+  api.ts         the only place that makes HTTP requests
   schemas.ts     Zod, mirroring the API
   messages.es.ts error code → Spanish text
-middleware.ts    route guard. At the root, a sibling of app/
+proxy.ts         route guard. At the root, a sibling of app/
 ```
 
-`middleware.ts` belongs at the project root. Placed inside `app/`, Next does not run it:
+`proxy.ts` belongs at the project root. Next 16 renamed the old `middleware.ts` to
+`proxy.ts`; the name has nothing to do with the rewrite that proxies API calls. Placed
+inside `app/`, Next does not run it:
 the page loads, everything appears to work, and the guard protects nothing.
 
 ---
@@ -191,6 +194,6 @@ Two caught during design, both of which would have failed silently rather than l
 | What it claimed | Why it was wrong |
 |---|---|
 | `NEXT_PUBLIC_API_URL` as the proxy destination | That prefix publishes the value in the browser bundle. The rewrite runs on the server; the variable must not be public |
-| `middleware.ts` inside `app/` | Next does not run it there. No error is raised — the route guard simply never executes |
+| `proxy.ts` inside `app/` | Next does not run it there. No error is raised — the route guard simply never executes |
 
 `<KEEP ADDING as they appear during development>`
