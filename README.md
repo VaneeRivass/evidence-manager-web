@@ -39,7 +39,7 @@ Decisions that shape the system and live in the API repository:
 
 | # | Decision | Why it matters here |
 |---|---|---|
-| [0003](https://github.com/VaneeRivass/evidence-manager-api/blob/main/docs/adr/0003-session-cookie-behind-a-proxy.md) | `httpOnly` cookie behind a proxy | **The proxy is implemented in this repository**, in `next.config.js`. It is what makes the cookie first-party and removes CORS |
+| [0003](https://github.com/VaneeRivass/evidence-manager-api/blob/main/docs/adr/0003-session-cookie-behind-a-proxy.md) | `httpOnly` cookie behind a proxy | **The proxy is implemented in this repository**, in `next.config.ts`. It is what makes the cookie first-party and removes CORS |
 | [0004](https://github.com/VaneeRivass/evidence-manager-api/blob/main/docs/adr/0004-r2-storage-with-upload-verification.md) | Presigned URLs, verified on confirmation | The upload goes from this browser straight to storage, in three steps |
 
 Interface requirements: [`docs/requirements.md`](docs/requirements.md).
@@ -93,7 +93,7 @@ The browser        stores it. JavaScript CANNOT read it
 This application   api.get('/cases')    → the browser attaches it by itself
 ```
 
-Every call is relative and goes through the rewrite in `next.config.js`, so the browser
+Every call is relative and goes through the rewrite in `next.config.ts`, so the browser
 only ever talks to its own origin. That is what makes the cookie first-party — a cross-site
 cookie would need `SameSite=None` and Safari blocks it — and it removes CORS entirely,
 since the same-origin policy is a browser rule and the hop between domains happens server

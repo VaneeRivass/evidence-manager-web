@@ -60,7 +60,7 @@ lib/
 proxy.ts                 route guard (Next 16 renamed middleware.ts to proxy.ts).
                          AT THE PROJECT ROOT, a sibling of app/ — inside app/ Next
                          does not run it. Not to be confused with the rewrite
-next.config.js           the rewrite
+next.config.ts           the rewrite
 ```
 
 | Layer | Knows about | Does not know about |
@@ -85,7 +85,7 @@ browser stores the httpOnly cookie and attaches it automatically on same-origin 
 That is the entire point of `httpOnly`.
 
 **All API calls are relative: `/api/cases`.** Never an absolute URL, never a base URL from
-an environment variable. A rewrite in `next.config.js` forwards to the API, which is what
+an environment variable. A rewrite in `next.config.ts` forwards to the API, which is what
 makes the cookie first-party and removes CORS entirely.
 
 ```js

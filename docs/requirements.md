@@ -106,7 +106,7 @@ notice. For those, this application assigns its own, in `lib/api.ts`:
 
 | Code | When | Why the API cannot provide it |
 |---|---|---|
-| `NETWORK_ERROR` | A request to the API gets **no response at all** — no connection, or the API unreachable | There is no response, so there is no body to read a code from |
+| `NETWORK_ERROR` | A request gets **no response from the API** — no connection, or the proxy answering for an API it cannot reach (a `500` with no problem body) | Either nothing arrives, or what arrives comes from Next, not the API: there is no code to read |
 | `UPLOAD_FAILED` | The `PUT` to storage fails — the connection drops, or storage answers with an error such as `403` or `5xx` | Storage is not this system's API: it answers in XML, not RFC 9457, and knows nothing of these codes |
 
 A `500` from the API is **not** one of these: it arrives in RFC 9457 with its own code
@@ -131,7 +131,7 @@ The full list lives in the API repository. These are the ones enforced here:
 Every API call is relative — the axios instance uses `baseURL: '/api'` — and a rewrite forwards it:
 
 ```js
-// next.config.js
+// next.config.ts
 async rewrites() {
   return [{ source: '/api/:path*', destination: `${process.env.API_URL}/:path*` }]
 }
