@@ -28,6 +28,7 @@ architecture decisions span both:
 |---|---|
 | Framework | **Next.js**, App Router · TypeScript in strict mode |
 | Server state | **TanStack Query** — the three required list states, plus invalidation |
+| HTTP client | **axios** — one instance in `lib/api.ts`; `onUploadProgress` gives the upload bar a real percentage |
 | Forms | **React Hook Form** + `zodResolver` |
 | Validation | **Zod**, duplicated from the API on purpose (separate repositories) |
 | Styling | **Tailwind** + **shadcn/ui** — components are copied into this repo, not imported |
@@ -53,12 +54,13 @@ hooks/
   useCases.ts            TanStack Query. The only place that knows API routes
   useFileUpload.ts       the three upload steps
 lib/
-  api.ts                 the ONLY place that calls fetch
+  api.ts                 the ONLY place that makes HTTP requests (axios)
   schemas.ts             Zod
   messages.es.ts         error code → Spanish text
-middleware.ts            route guard. AT THE PROJECT ROOT, a sibling of app/ —
-                         inside app/ Next does not run it
-next.config.js           the rewrite
+proxy.ts                 route guard (Next 16 renamed middleware.ts to proxy.ts).
+                         AT THE PROJECT ROOT, a sibling of app/ — inside app/ Next
+                         does not run it. Not to be confused with the rewrite
+next.config.ts           the rewrite
 ```
 
 | Layer | Knows about | Does not know about |
@@ -83,7 +85,7 @@ browser stores the httpOnly cookie and attaches it automatically on same-origin 
 That is the entire point of `httpOnly`.
 
 **All API calls are relative: `/api/cases`.** Never an absolute URL, never a base URL from
-an environment variable. A rewrite in `next.config.js` forwards to the API, which is what
+an environment variable. A rewrite in `next.config.ts` forwards to the API, which is what
 makes the cookie first-party and removes CORS entirely.
 
 ```js
@@ -100,16 +102,20 @@ API origin in the client bundle — exactly what the proxy exists to avoid.
 **The upload goes straight to storage, without credentials.**
 
 ```ts
-await fetch(uploadUrl, {
-  method: 'PUT',
-  body: file,
-  headers: { 'Content-Type': file.type },  // must match what was signed
-  // no credentials: the session cookie must never travel to Cloudflare
+await axios.put(uploadUrl, file, {         // plain axios, NOT the `api` instance: R2 is not our API
+  headers: { 'Content-Type': file.type },   // must match what was signed
+  onUploadProgress: (e) => onProgress(e.progress ?? 0),
 })
+// withCredentials stays false: the session cookie must never travel to Cloudflare
 ```
 
-**`lib/api.ts` is the only place that calls `fetch` to the API**, and the only place that
-turns an RFC 9457 response into a typed error.
+To the person it is one action — choose a file, confirm it, watch one bar — never three
+steps (`RF-17`). Nothing is sent before they press **Attach**: evidence cannot be replaced.
+
+**`lib/api.ts` is the only place that makes HTTP requests** — the axios instance for the
+API, and the plain `axios.put` to storage — and the only place that turns an RFC 9457
+response into a typed error, in a response interceptor. Hooks say what to request and
+when; they never build a request.
 
 **Validate size and MIME type in the browser before requesting anything.** That is for the
 honest user: instant feedback, no upload that fails. The server validation is for everyone

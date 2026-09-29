@@ -1,0 +1,77 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+/* Light only, like the mockup. Scoped to a .dark class nobody sets, so the dark:
+   utilities inside shadcn's components never follow the operating system's theme */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-jakarta);
+  --font-heading: var(--font-jakarta);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Kiggu colours with no shadcn role: status pills, the decorative blobs */
+  --color-teal: #00bb9c;
+  --color-amber: #fab446;
+  --color-slate: #3e4675;
+}
+
+/* The mockup's palette (docs/maqueta.html), taken from kiggu.io */
+:root {
+  --background: #f8f9f9;
+  --foreground: #161c2d; /* navy */
+  --card: #ffffff;
+  --card-foreground: #161c2d;
+  --popover: #ffffff;
+  --popover-foreground: #161c2d;
+  --primary: #4f68f1; /* blue */
+  --primary-foreground: #ffffff;
+  --secondary: #eceffe; /* blue, soft */
+  --secondary-foreground: #2f45c4;
+  --muted: #eef0f4;
+  --muted-foreground: #666e94;
+  --accent: #e0f6f2; /* teal, soft */
+  --accent-foreground: #007a66;
+  --destructive: #c8414b;
+  --border: #e3e6ee;
+  --input: #e3e6ee;
+  --ring: #4f68f1;
+  --radius: 1.25rem; /* the mockup's panels; buttons are pills */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
