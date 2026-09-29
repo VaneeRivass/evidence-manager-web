@@ -20,7 +20,7 @@ exactly one file.
 | **RF-14** | Private routes: with no session, redirect to login **before the page is served**. No flash of protected content |
 | **RF-15** | The list renders one of **three distinct states**: **empty**, **loading**, **error** |
 | **RF-16** | Create, edit, change status and delete from the interface |
-| **RF-17** | Attach evidence (request link → upload → confirm) and download it |
+| **RF-17** | Attach evidence by dropping a file or picking it, and download it. The upload is **one action with one progress bar**: the three calls behind it (request link → upload → confirm) are never shown as steps |
 | **RF-18** | **Validation errors** appear next to the field that caused them |
 | **RF-19** | **Operation errors** — failed upload, expired link, network down — appear as a floating notice carrying the API error code and, when the action can be repeated, a retry button. Success notices dismiss themselves; error notices wait to be dismissed |
 | **RF-20** | Every destructive action requires explicit confirmation. The dialog **names what is lost** — the case and its evidence — and warns it cannot be undone. A generic "are you sure?" is not enough |
@@ -52,8 +52,12 @@ nothing.
 
 ### RF-17 · The upload, from the client's side
 
+What the person sees is one action: drop a file on the evidence area, or pick it with the
+button, and a single progress bar runs until the file is attached. The steps below happen
+inside `useFileUpload` and never appear on screen.
+
 ```
-1. The person picks a file
+1. The person drops or picks a file
    → validate type and size IN THE BROWSER, before any request
 
 2. POST /api/cases/:id/file/upload-url
@@ -63,6 +67,8 @@ nothing.
    → straight to storage, never through the API
    → Content-Type identical to the one that was signed
    → WITHOUT credentials: the session cookie must never travel to storage
+   → sent with XMLHttpRequest, not fetch: only XMLHttpRequest reports upload
+     progress in every browser, and the bar shows a real percentage
 
 4. POST /api/cases/:id/file/complete { key }
    → the API verifies against storage and persists the reference
@@ -72,8 +78,10 @@ Client-side validation is **for the honest user**: instant feedback, nothing upl
 will be rejected. The server validation is for everyone else and cannot be skipped
 (`RNF-04`).
 
-If any step fails, the notice says **which one** — asking for the link, uploading, or
-confirming — because the fix differs in each case.
+If any step fails, the notice says **what went wrong in the person's terms**, not which
+step: the upload could not start, it was interrupted, or the file could not be verified.
+Each has its own message because the fix differs — retry, check the connection, or pick
+another file — but none of them mentions links or confirmations.
 
 ### RF-18 and RF-19 · Two kinds of error, two placements
 

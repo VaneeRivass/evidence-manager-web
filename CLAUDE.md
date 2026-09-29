@@ -100,16 +100,20 @@ API origin in the client bundle — exactly what the proxy exists to avoid.
 **The upload goes straight to storage, without credentials.**
 
 ```ts
-await fetch(uploadUrl, {
-  method: 'PUT',
-  body: file,
-  headers: { 'Content-Type': file.type },  // must match what was signed
-  // no credentials: the session cookie must never travel to Cloudflare
-})
+const xhr = new XMLHttpRequest()           // not fetch: only XHR reports upload progress
+xhr.open('PUT', uploadUrl)
+xhr.setRequestHeader('Content-Type', file.type)  // must match what was signed
+xhr.upload.onprogress = (e) => onProgress(e.loaded / e.total)
+xhr.send(file)
+// withCredentials stays false: the session cookie must never travel to Cloudflare
 ```
 
-**`lib/api.ts` is the only place that calls `fetch` to the API**, and the only place that
-turns an RFC 9457 response into a typed error.
+To the person it is one action — drop or pick a file, watch one bar — never three steps
+(`RF-17`).
+
+**`lib/api.ts` is the only place that makes HTTP requests** — `fetch` to the API, and the
+`XMLHttpRequest` upload to storage — and the only place that turns an RFC 9457 response
+into a typed error. `useFileUpload` chains the three calls; it never builds a request.
 
 **Validate size and MIME type in the browser before requesting anything.** That is for the
 honest user: instant feedback, no upload that fails. The server validation is for everyone
