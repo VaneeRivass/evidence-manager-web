@@ -18,6 +18,7 @@ English.
 |---|---|
 | Framework | Next.js, App Router · TypeScript, strict |
 | Server state | TanStack Query |
+| HTTP client | axios |
 | Forms | React Hook Form with Zod |
 | Styling | Tailwind · shadcn/ui · lucide-react |
 | Notices | sonner |
@@ -89,7 +90,7 @@ omission.
 ```
 The API responds   Set-Cookie: session=…; HttpOnly; Secure; SameSite=Lax
 The browser        stores it. JavaScript CANNOT read it
-This application   fetch('/api/cases')  → the browser attaches it by itself
+This application   api.get('/cases')    → the browser attaches it by itself
 ```
 
 Every call is relative and goes through the rewrite in `next.config.js`, so the browser
@@ -115,7 +116,7 @@ components/
 hooks/
   useCases · useFileUpload · useSession
 lib/
-  api.ts         the only place that calls fetch
+  api.ts         the only place that makes HTTP requests
   schemas.ts     Zod, mirroring the API
   messages.es.ts error code → Spanish text
 proxy.ts         route guard. At the root, a sibling of app/

@@ -20,7 +20,7 @@ exactly one file.
 | **RF-14** | Private routes: with no session, redirect to login **before the page is served**. No flash of protected content |
 | **RF-15** | The list renders one of **three distinct states**: **empty**, **loading**, **error** |
 | **RF-16** | Create, edit, change status and delete from the interface |
-| **RF-17** | Attach evidence by dropping a file or picking it, and download it. The upload is **one action with one progress bar**: the three calls behind it (request link → upload → confirm) are never shown as steps |
+| **RF-17** | Attach evidence by dropping a file or picking it, and download it. A chosen file is **shown for confirmation before anything is sent**, because evidence cannot be replaced once attached. The upload is **one action with one progress bar**: the three calls behind it (request link → upload → confirm) are never shown as steps |
 | **RF-18** | **Validation errors** appear next to the field that caused them |
 | **RF-19** | **Operation errors** — failed upload, expired link, network down — appear as a floating notice carrying the API error code and, when the action can be repeated, a retry button. Success notices dismiss themselves; error notices wait to be dismissed |
 | **RF-20** | Every destructive action requires explicit confirmation. The dialog **names what is lost** — the case and its evidence — and warns it cannot be undone. A generic "are you sure?" is not enough |
@@ -55,13 +55,17 @@ nothing.
 
 ### RF-17 · The upload, from the client's side
 
-What the person sees is one action: drop a file on the evidence area, or pick it with the
-button, and a single progress bar runs until the file is attached. The steps below happen
-inside `useFileUpload` and never appear on screen.
+What the person sees: drop a file on the evidence area, or pick it with the button; the
+file is shown with its name and size and a warning that it cannot be changed later; they
+press **Attach**, and a single progress bar runs until the file is attached. Nothing is
+sent until they press it — evidence is never replaced (`RF-10`), so choosing the wrong
+file must be cheap to undo. The calls below happen inside `useFileUpload` and never
+appear on screen.
 
 ```
 1. The person drops or picks a file
    → validate type and size IN THE BROWSER, before any request
+   → show it for confirmation; "Choose another" discards it, "Attach" continues
 
 2. POST /api/cases/:id/file/upload-url
    → returns { uploadUrl, key, expiresIn }
@@ -70,11 +74,12 @@ inside `useFileUpload` and never appear on screen.
    → straight to storage, never through the API
    → Content-Type identical to the one that was signed
    → WITHOUT credentials: the session cookie must never travel to storage
-   → sent with XMLHttpRequest, not fetch: only XMLHttpRequest reports upload
-     progress in every browser, and the bar shows a real percentage
+   → sent with axios, whose onUploadProgress reports a real percentage; fetch
+     cannot report upload progress in every browser
 
 4. POST /api/cases/:id/file/complete { key }
    → the API verifies against storage and persists the reference
+   → the bar is full and reads "Finishing…" until this answers
 ```
 
 Client-side validation is **for the honest user**: instant feedback, nothing uploaded that
@@ -96,6 +101,17 @@ another file — but none of them mentions links or confirmations.
 The API emits stable codes with parameters (`RF-23`); this application turns them into
 sentences. That mapping lives in one file.
 
+Two failures never reach the API's error format, yet `RF-19` still requires a code on the
+notice. For those, this application assigns its own, in `lib/api.ts`:
+
+| Code | When | Why the API cannot provide it |
+|---|---|---|
+| `NETWORK_ERROR` | A request to the API gets **no response at all** — no connection, or the API unreachable | There is no response, so there is no body to read a code from |
+| `UPLOAD_FAILED` | The `PUT` to storage fails — the connection drops, or storage answers with an error such as `403` or `5xx` | Storage is not this system's API: it answers in XML, not RFC 9457, and knows nothing of these codes |
+
+A `500` from the API is **not** one of these: it arrives in RFC 9457 with its own code
+(`INTERNAL_ERROR`) and is shown as is.
+
 ---
 
 ## 3. Non-functional requirements this application is responsible for
@@ -112,7 +128,7 @@ The full list lives in the API repository. These are the ones enforced here:
 
 ## 4. The proxy
 
-Every API call is relative — `fetch('/api/cases')` — and a rewrite forwards it:
+Every API call is relative — the axios instance uses `baseURL: '/api'` — and a rewrite forwards it:
 
 ```js
 // next.config.js
