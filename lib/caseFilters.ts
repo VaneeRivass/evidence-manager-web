@@ -18,11 +18,12 @@ export function readFilters(params: URLSearchParams): CaseFilters {
   }
 }
 
-// The default is left out, so the plain list keeps the plain address: /cases
-export function filtersToQuery({ status, sort }: CaseFilters): string {
+// The list's address for these filters. The default is left out, so the plain list keeps
+// the plain address: /cases
+export function casesHref({ status, sort }: CaseFilters): string {
   const params = new URLSearchParams()
   if (status) params.set('status', status.toLowerCase())
   if (sort !== DEFAULT_SORT) params.set('sort', sort)
   const query = params.toString()
-  return query ? `?${query}` : ''
+  return query ? `/cases?${query}` : '/cases'
 }

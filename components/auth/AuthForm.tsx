@@ -36,6 +36,9 @@ const modes = {
   },
 } as const
 
+// The mockup's inputs: taller and rounder than shadcn's default
+const inputClass = 'h-11 rounded-[14px] bg-card px-3.5'
+
 export function AuthForm({ mode }: { mode: keyof typeof modes }) {
   const copy = modes[mode]
   const router = useRouter()
@@ -64,8 +67,7 @@ export function AuthForm({ mode }: { mode: keyof typeof modes }) {
         router.replace('/login')
       },
       onError: (error) => {
-        showAuthError(error, setError)
-        setFocus('password')
+        showAuthError(error, { setError, setFocus })
       },
     }),
   )
@@ -92,7 +94,7 @@ export function AuthForm({ mode }: { mode: keyof typeof modes }) {
           autoComplete="email"
           aria-invalid={!!errors.email}
           aria-describedby={errors.email ? 'email-error' : undefined}
-          className="h-11 rounded-[14px] bg-card px-3.5"
+          className={inputClass}
           {...field('email')}
         />
       </Field>
@@ -104,7 +106,7 @@ export function AuthForm({ mode }: { mode: keyof typeof modes }) {
           autoComplete={copy.passwordAutocomplete}
           aria-invalid={!!errors.password}
           aria-describedby={errors.password ? 'password-error' : undefined}
-          className="h-11 rounded-[14px] bg-card px-3.5"
+          className={inputClass}
           {...field('password')}
         />
       </Field>

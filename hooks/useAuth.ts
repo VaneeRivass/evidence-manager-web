@@ -1,15 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import type { Credentials } from '@/lib/schemas'
+import { goToLogin } from '@/lib/session'
 
 // The only place that knows the auth routes. How a request is made lives in lib/api.ts.
 
 type User = { id: string; email: string }
 
+// The login already answers who signed in: it seeds the session query, so the top bar
+// does not ask /auth/me again right after
 export function useLogin() {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: async (credentials: Credentials) =>
       (await api.post<User>('/auth/login', credentials)).data,
+    onSuccess: (user) => queryClient.setQueryData(['session'], user),
   })
 }
 
@@ -23,25 +29,23 @@ export function useRegister() {
 }
 
 // RF-03 · who is signed in. The cookie cannot be read from here (httpOnly), so the API
-// says. No retries: a 401 is an answer, not a hiccup, and the person must leave at once.
+// says. It does not change during a session, so it is asked once; a session that expires
+// is caught by whichever request next answers 401 (providers.tsx).
 export function useSession() {
   return useQuery({
     queryKey: ['session'],
     queryFn: async () => (await api.get<User>('/auth/me')).data,
-    retry: false,
     staleTime: Infinity,
   })
 }
 
-// RF-04 · the API clears the cookie; the cache is emptied so the next person on this
-// browser never sees the previous one's data
+// RF-04 · the API clears the cookie, then the session is left (lib/session.ts). A 401 here —
+// the session had already expired — ends in the same place (providers.tsx).
 export function useLogout() {
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async () => {
       await api.post('/auth/logout')
     },
-    onSuccess: () => queryClient.clear(),
+    onSuccess: goToLogin,
   })
 }

@@ -76,9 +76,14 @@ asking, and telling a stranger which addresses exist is already telling them som
 needs the API's secret, which must not leave the API; asking the API on every navigation
 would add a request to every page for everyone. So on private pages the guard only checks
 that the cookie is there. A cookie that no longer holds — the secret was rotated, or the
-cookie was made up — gets past it: the page's frame is served, the request for the current
-user (`/auth/me`) answers `401`, and the person is sent to the login. What shows for that
-moment is the empty frame, never data: every request for data answers `401` too.
+cookie was made up — gets past it: the page's frame is served, its first request answers
+`401`, and the person is sent to the login. What shows for that moment is the empty frame,
+never data: every request for data answers `401` too.
+
+**Any `401` from the API, from any screen, sends the person to the login** — one handler for
+the whole application, not a rule per screen. It is a full page load rather than a move
+within the application: the page is dropped and, with it, everything the client kept in
+memory. A session can also expire while a tab stays open; the next request finds out.
 Accepted: a normal session expires together with its cookie, which the browser then deletes
 by itself.
 
@@ -91,9 +96,10 @@ valid, it redirects to `/cases`; rejected, it **deletes the cookie** and serves 
 It can, because it runs on Next's server, where `httpOnly` does not apply. The extra request
 happens only when someone holding a cookie opens those two screens.
 
-**Signing out** (`RF-04`) asks the API to clear the cookie, empties the client's cache so
-the next person on the same browser never sees the previous one's data, and returns to the
-login.
+**Signing out** (`RF-04`) asks the API to clear the cookie and returns to the login with a
+full page load. That load is what empties the client's cache, so the next person on the
+same browser never sees the previous one's data — whether signing out succeeded or the
+session had already expired.
 
 ### RF-15 · The three states
 
