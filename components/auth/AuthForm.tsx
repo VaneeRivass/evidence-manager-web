@@ -54,15 +54,13 @@ export function AuthForm({ mode }: { mode: keyof typeof modes }) {
 
   const onSubmit = handleSubmit((values) =>
     mutation.mutate(values, {
-      onSuccess: (user) => {
-        if (user) {
+      onSuccess: () => {
+        if (mode === 'login') {
           router.replace('/cases')
           return
         }
-        // RF-13 · the account exists; only the session is missing
-        toast.success(
-          'Tu cuenta está creada. Entra con tu correo y contraseña.',
-        )
+        // RF-13 · registering does not sign the person in
+        toast.success('Cuenta creada. Ya puedes entrar.')
         router.replace('/login')
       },
       onError: (error) => {

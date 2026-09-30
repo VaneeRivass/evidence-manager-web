@@ -44,19 +44,26 @@ architecture decisions span both:
 app/
   (auth)/login/page.tsx
   (auth)/register/page.tsx
+  (app)/layout.tsx       the top bar over every private page
   (app)/cases/page.tsx
   (app)/cases/[id]/page.tsx
+  (app)/[...slug]/       any other address: the not-found screen, INSIDE the private
+                         layout. It renders the screen itself — notFound() would drop
+                         the top bar
   layout.tsx
+  providers.tsx          TanStack Query client and the notices' Toaster
 components/
   ui/                    shadcn — do not lint, do not reformat
-  cases/CaseTable.tsx    domain components
+  auth/ cases/           domain components
 hooks/
-  useCases.ts            TanStack Query. The only place that knows API routes
+  useAuth.ts             TanStack Query. The only place that knows API routes
+  useCases.ts
   useFileUpload.ts       the three upload steps
 lib/
   api.ts                 the ONLY place that makes HTTP requests (axios)
   schemas.ts             Zod
   messages.es.ts         error code → Spanish text
+  notify.ts              the floating notice for operation errors (RF-19)
 proxy.ts                 route guard (Next 16 renamed middleware.ts to proxy.ts).
                          AT THE PROJECT ROOT, a sibling of app/ — inside app/ Next
                          does not run it. Not to be confused with the rewrite

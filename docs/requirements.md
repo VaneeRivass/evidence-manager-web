@@ -16,8 +16,8 @@ exactly one file.
 
 | ID | Requirement |
 |---|---|
-| **RF-13** | Registration and login screens showing errors **next to the field that caused them**, with the message from the API. Registering **signs the person in** straight away |
-| **RF-14** | Private routes: with no session, redirect to login **before the page is served**. No flash of protected content |
+| **RF-13** | Registration and login screens showing errors **next to the field that caused them**, with the message from the API. Registering **does not sign the person in**: they sign in themselves |
+| **RF-14** | Private routes: with no session, redirect to login **before the page is served**. No flash of protected content. Everything is private except the login and registration screens. An address that does not exist shows a not-found page **inside** the private layout |
 | **RF-15** | The list renders one of **three distinct states**: **empty**, **loading**, **error** |
 | **RF-16** | Create, edit, change status and delete from the interface |
 | **RF-17** | Attach evidence by dropping a file or picking it, and download it. A chosen file is **shown for confirmation before anything is sent**, because evidence cannot be replaced once attached. The upload is **one action with one progress bar**: the three calls behind it (request link → upload → confirm) are never shown as steps |
@@ -29,24 +29,15 @@ exactly one file.
 
 ## 2. What each requirement means in practice
 
-### RF-13 · Registering signs you in
+### RF-13 · Registering does not sign you in
 
-The API's registration answers `201` without a session; only login sets the cookie. Asking
-for the password again, right after it was typed, is friction with no purpose. So
-`useRegister` makes two calls with the values of the same submit:
+The API's registration answers `201` without a session; only login sets the cookie. After
+registering, the person lands on the login screen with a notice that the account was
+created, and signs in themselves.
 
-```
-POST /api/auth/register { email, password }   → 201
-POST /api/auth/login    { email, password }   → 200 + session cookie
-```
-
-The password is **not kept anywhere** in between: not in `localStorage`, not in a cookie, not
-in state that outlives the submit. It is the form's value, sent twice over HTTPS within the
-same function. If the login fails after a successful registration, the person is sent to
-the login screen with a notice that the account was created: it exists, only the session
-is missing. Registering again would only answer `EMAIL_TAKEN`.
-
-Trying the login screen after registering therefore means signing out first (`RF-04`).
+Signing them in straight away would save typing the password twice, but the login screen
+could then only be tried after signing out. Keeping the two steps apart keeps each one
+testable on its own, and the client never sends the password more than once per submit.
 
 ### RF-14 · The guard runs on the server
 
@@ -63,6 +54,46 @@ have been shown.
 `proxy.ts` lives at the project root, a sibling of `app/`. Placed inside `app/` Next
 does not run it, the page loads, everything appears to work, and the guard protects
 nothing.
+
+**Everything is private except `/login` and `/register`.** The guard lists what is public,
+not what is private, so a route added later is protected without anyone remembering to
+add it.
+
+| Address | With a session | Without one |
+|---|---|---|
+| `/` | `/cases` | `/login` |
+| `/login`, `/register` | `/cases` — to see them, sign out first | The form |
+| An address that does not exist | The not-found page, inside the private layout | `/login` |
+
+**The not-found page keeps the top bar** — email and sign-out — so the person sees their
+session is intact and the application is not broken. It says what happened in plain words,
+offers **Back to my cases** as the main way out and **Back** as the second. It is never a
+redirect without warning, which leaves the person unsure whether the link failed or they
+did something wrong. Without a session there is no such page: the guard does not know who is
+asking, and telling a stranger which addresses exist is already telling them something.
+
+**The guard can only see that a cookie exists, not that it is valid.** Verifying the token
+needs the API's secret, which must not leave the API; asking the API on every navigation
+would add a request to every page for everyone. So on private pages the guard only checks
+that the cookie is there. A cookie that no longer holds — the secret was rotated, or the
+cookie was made up — gets past it: the page's frame is served, the request for the current
+user (`/auth/me`) answers `401`, and the person is sent to the login. What shows for that
+moment is the empty frame, never data: every request for data answers `401` too.
+Accepted: a normal session expires together with its cookie, which the browser then deletes
+by itself.
+
+**On `/login` and `/register` the guard does ask the API**, and only there, only when a
+cookie is present. Redirecting a signed-in person to `/cases` on the strength of a cookie
+alone would loop with the rule above: `/cases` sends a rejected cookie to the login, the
+login sends the cookie back to `/cases`. The client cannot break the loop — the cookie is
+`httpOnly` — and the API's sign-out needs a valid session. So the guard calls `/auth/me`:
+valid, it redirects to `/cases`; rejected, it **deletes the cookie** and serves the form.
+It can, because it runs on Next's server, where `httpOnly` does not apply. The extra request
+happens only when someone holding a cookie opens those two screens.
+
+**Signing out** (`RF-04`) asks the API to clear the cookie, empties the client's cache so
+the next person on the same browser never sees the previous one's data, and returns to the
+login.
 
 ### RF-15 · The three states
 
