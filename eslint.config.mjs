@@ -1,17 +1,17 @@
 import js from '@eslint/js'
-import ts from 'typescript-eslint'
-import next from '@next/eslint-plugin-next'
+import { defineConfig, globalIgnores } from 'eslint/config'
+import nextVitals from 'eslint-config-next/core-web-vitals'
+import nextTs from 'eslint-config-next/typescript'
 import prettier from 'eslint-config-prettier'
 
-export default ts.config(
+// The create-next-app setup — Next, React, the rules of hooks, accessibility (jsx-a11y),
+// imports and TypeScript — plus this repository's own rules.
+export default defineConfig([
   js.configs.recommended,
-  ...ts.configs.recommended,
+  ...nextVitals,
+  ...nextTs,
   {
-    plugins: { '@next/next': next },
     rules: {
-      ...next.configs.recommended.rules,
-      ...next.configs['core-web-vitals'].rules,
-
       '@typescript-eslint/no-explicit-any': 'error',
       'no-console': ['error', { allow: ['warn', 'error'] }],
       '@typescript-eslint/no-unused-vars': [
@@ -21,8 +21,14 @@ export default ts.config(
     },
   },
 
-  // components/ui/ is shadcn's code, copied in. Fighting its style is noise.
-  { ignores: ['.next/', 'node_modules/', 'components/ui/'] },
+  globalIgnores([
+    '.next/**',
+    'out/**',
+    'build/**',
+    'next-env.d.ts',
+    // shadcn's code, copied in. Fighting its style is noise.
+    'components/ui/**',
+  ]),
 
   prettier,
-)
+])
