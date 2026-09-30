@@ -13,8 +13,9 @@ import {
   type CaseFilters as Filters,
   type CaseSort,
   type CaseStatus,
-  filtersToQuery,
+  casesHref,
 } from '@/lib/caseFilters'
+import { cn } from '@/lib/utils'
 
 const tabs: { label: string; status?: CaseStatus }[] = [
   { label: 'Todos' },
@@ -43,13 +44,14 @@ export function CaseFilters({ filters }: { filters: Filters }) {
           return (
             <Link
               key={tab.label}
-              href={`/cases${filtersToQuery({ ...filters, status: tab.status })}`}
+              href={casesHref({ ...filters, status: tab.status })}
               aria-current={active ? 'page' : undefined}
-              className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium ${
+              className={cn(
+                'rounded-full px-3.5 py-1.5 text-[13px] font-medium',
                 active
                   ? 'bg-foreground text-white'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
             >
               {tab.label}
             </Link>
@@ -60,17 +62,20 @@ export function CaseFilters({ filters }: { filters: Filters }) {
       <Select
         value={filters.sort}
         onValueChange={(sort) =>
-          router.replace(
-            `/cases${filtersToQuery({ ...filters, sort: sort as CaseSort })}`,
-            { scroll: false },
-          )
+          router.replace(casesHref({ ...filters, sort: sort as CaseSort }), {
+            scroll: false,
+          })
         }
       >
         <SelectTrigger
           aria-label="Ordenar por"
           className="h-9 rounded-full bg-card px-3.5 text-[13px] text-slate"
         >
-          <SelectValue />
+          {/* The label is given, not looked up: Radix fills an empty SelectValue only once
+              the page's JavaScript has loaded, which leaves the pill blank until then */}
+          <SelectValue>
+            {sorts.find((sort) => sort.value === filters.sort)?.label}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent align="end">
           {sorts.map((sort) => (

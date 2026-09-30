@@ -64,6 +64,7 @@ lib/
   schemas.ts             Zod
   messages.es.ts         error code → Spanish text
   notify.ts              the floating notice for operation errors (RF-19)
+  session.ts             goToLogin: a full page load, which drops the cache (RF-04, RF-14)
   caseFilters.ts         the list's filter and ordering, to and from the address
   format.ts              dates and sizes in Spanish, with Intl
 proxy.ts                 route guard (Next 16 renamed middleware.ts to proxy.ts).

@@ -1,11 +1,12 @@
 import { toast } from 'sonner'
-import { ApiError } from './api'
+import { isUnauthenticated, toApiError } from './api'
 import { message } from './messages.es'
 
 // RF-19 · an operation error: a floating notice carrying the code, which waits to be
-// dismissed. Anything that is not an ApiError reads as INTERNAL_ERROR.
+// dismissed. A 401 gets none: the page is already leaving for the login (providers.tsx).
 export function notifyError(error: unknown) {
-  const err = error instanceof ApiError ? error : new ApiError('INTERNAL_ERROR')
+  if (isUnauthenticated(error)) return
+  const err = toApiError(error)
 
   toast.error(message(err.code, err.params), {
     description: err.code,

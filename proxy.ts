@@ -53,6 +53,7 @@ async function askApi(
 
 export const config = {
   // Everything except the API rewrite — signing in must reach it without a session —
-  // and Next's own files
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  // and Next's own files. `api/` and `api$`, not `api`: that would also let /apiary or
+  // /api-docs past the guard.
+  matcher: ['/((?!api/|api$|_next/static|_next/image|favicon.ico).*)'],
 }

@@ -2,8 +2,8 @@
 
 import { useSearchParams } from 'next/navigation'
 import { useCases } from '@/hooks/useCases'
-import { ApiError } from '@/lib/api'
-import { readFilters } from '@/lib/caseFilters'
+import { toApiError } from '@/lib/api'
+import { type CaseStatus, readFilters } from '@/lib/caseFilters'
 import { CaseFilters } from './CaseFilters'
 import {
   CaseListEmpty,
@@ -39,21 +39,20 @@ function Body({
   status,
 }: {
   cases: ReturnType<typeof useCases>
-  status: ReturnType<typeof readFilters>['status']
+  status: CaseStatus | undefined
 }) {
-  // A 401 is already sending the person to the login (TopBar): the error would only flash
-  const signedOut =
-    cases.error instanceof ApiError && cases.error.code === 'UNAUTHENTICATED'
-
   // Retrying after an error shows the skeleton, so the button visibly does something
-  if (cases.isPending || signedOut || (cases.isError && cases.isFetching)) {
+  if (cases.isPending || (cases.isError && cases.isFetching)) {
     return <CaseListSkeleton />
   }
 
   if (cases.isError) {
-    const code =
-      cases.error instanceof ApiError ? cases.error.code : 'INTERNAL_ERROR'
-    return <CaseListError code={code} onRetry={() => cases.refetch()} />
+    return (
+      <CaseListError
+        code={toApiError(cases.error).code}
+        onRetry={() => cases.refetch()}
+      />
+    )
   }
 
   const { items, total } = cases.data
@@ -71,10 +70,7 @@ function Body({
   )
 }
 
-function countText(
-  total: number,
-  status: ReturnType<typeof readFilters>['status'],
-) {
+function countText(total: number, status: CaseStatus | undefined) {
   if (total === 0) return status ? 'Ningún caso' : 'Aún no hay casos'
   return total === 1 ? '1 caso' : `${total} casos`
 }
