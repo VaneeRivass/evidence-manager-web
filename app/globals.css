@@ -96,3 +96,32 @@
     @apply font-sans;
   }
 }
+
+@layer components {
+  /* The mockup's signature: a file drawn as a document with a folded corner, its type on
+     it. Red for PDF, teal for images. Used by the list (#6) and the evidence (#8). */
+  .file-icon {
+    --file-color: #3e4675; /* slate */
+    display: grid;
+    place-items: end center;
+    flex: none;
+    width: 26px;
+    height: 32px;
+    padding-bottom: 5px;
+    border-radius: 4px;
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    color: #fff;
+    clip-path: polygon(0 0, 66% 0, 100% 27%, 100% 100%, 0 100%);
+    background:
+      linear-gradient(225deg, rgb(255 255 255 / 0.5) 0 19%, transparent 19%),
+      var(--file-color);
+  }
+  .file-icon[data-kind='pdf'] {
+    --file-color: var(--destructive);
+  }
+  .file-icon[data-kind='image'] {
+    --file-color: #00bb9c; /* teal */
+  }
+}

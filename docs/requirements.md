@@ -103,6 +103,23 @@ login.
 | **Empty** | A message explaining there is nothing yet and a button to create the first case. Not a blank table |
 | **Error** | The API error code and a retry button. Not a blank screen |
 
+**Filter and ordering live in the address** — `/cases?status=closed&sort=createdAt` — so a
+reload or the back button keeps them. From there they go into the query key, so each
+combination is cached on its own, and to the API as the same parameters (`RF-06`). The API
+answers `400` to a value it does not know; the address is typed by people, so a value this
+application does not recognise is dropped and the default used instead.
+
+**The status tabs carry no counts.** The API's `total` counts the filter asked for, not the
+others: showing *Open 3 · Closed 1* would take three requests on every load. Under the title,
+the number of cases in view.
+
+**With a filter, the empty state names it**: *You have no closed cases*. The button to create
+the first case arrives with creation itself (#7).
+
+**More than 100 cases:** the API answers at most 100, newest first, and `total` counts all of
+them. When `total` is larger, a line says so. Pagination controls are out of scope (known
+limitations).
+
 ### RF-17 · The upload, from the client's side
 
 What the person sees: drop a file on the evidence area, or pick it with the button; the

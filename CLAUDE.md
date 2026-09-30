@@ -64,6 +64,8 @@ lib/
   schemas.ts             Zod
   messages.es.ts         error code → Spanish text
   notify.ts              the floating notice for operation errors (RF-19)
+  caseFilters.ts         the list's filter and ordering, to and from the address
+  format.ts              dates and sizes in Spanish, with Intl
 proxy.ts                 route guard (Next 16 renamed middleware.ts to proxy.ts).
                          AT THE PROJECT ROOT, a sibling of app/ — inside app/ Next
                          does not run it. Not to be confused with the rewrite
