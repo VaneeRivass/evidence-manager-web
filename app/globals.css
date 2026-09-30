@@ -39,6 +39,27 @@
   --color-teal: #00bb9c;
   --color-amber: #fab446;
   --color-slate: #3e4675;
+
+  /* The drifting blobs on the sign-in screens (mockup screens 1 and 2) */
+  --animate-drift-1: drift-1 14s ease-in-out infinite alternate;
+  --animate-drift-2: drift-2 17s ease-in-out infinite alternate;
+  --animate-drift-3: drift-3 11s ease-in-out infinite alternate;
+
+  @keyframes drift-1 {
+    to {
+      transform: translate(-40px, 30px) scale(1.08);
+    }
+  }
+  @keyframes drift-2 {
+    to {
+      transform: translate(35px, -25px) scale(1.12);
+    }
+  }
+  @keyframes drift-3 {
+    to {
+      transform: translate(-25px, -35px) scale(0.9);
+    }
+  }
 }
 
 /* The mockup's palette (docs/maqueta.html), taken from kiggu.io */

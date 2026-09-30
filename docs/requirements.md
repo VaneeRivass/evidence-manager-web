@@ -16,7 +16,7 @@ exactly one file.
 
 | ID | Requirement |
 |---|---|
-| **RF-13** | Registration and login screens showing errors **next to the field that caused them**, with the message from the API |
+| **RF-13** | Registration and login screens showing errors **next to the field that caused them**, with the message from the API. Registering **signs the person in** straight away |
 | **RF-14** | Private routes: with no session, redirect to login **before the page is served**. No flash of protected content |
 | **RF-15** | The list renders one of **three distinct states**: **empty**, **loading**, **error** |
 | **RF-16** | Create, edit, change status and delete from the interface |
@@ -28,6 +28,25 @@ exactly one file.
 ---
 
 ## 2. What each requirement means in practice
+
+### RF-13 · Registering signs you in
+
+The API's registration answers `201` without a session; only login sets the cookie. Asking
+for the password again, right after it was typed, is friction with no purpose. So
+`useRegister` makes two calls with the values of the same submit:
+
+```
+POST /api/auth/register { email, password }   → 201
+POST /api/auth/login    { email, password }   → 200 + session cookie
+```
+
+The password is **not kept anywhere** in between: not in `localStorage`, not in a cookie, not
+in state that outlives the submit. It is the form's value, sent twice over HTTPS within the
+same function. If the login fails after a successful registration, the person is sent to
+the login screen with a notice that the account was created: it exists, only the session
+is missing. Registering again would only answer `EMAIL_TAKEN`.
+
+Trying the login screen after registering therefore means signing out first (`RF-04`).
 
 ### RF-14 · The guard runs on the server
 
@@ -96,7 +115,11 @@ another file — but none of them mentions links or confirmations.
 | Kind | Where it appears |
 |---|---|
 | **Validation** — `400` with fields | Next to the field, through the form library's error API |
+| **About the whole form** — wrong credentials (`INVALID_CREDENTIALS`) | Inside the form, above its button. The message only, without the code, like field errors. The API does not say which field failed, on purpose (`RF-02`), so it cannot sit under one |
 | **Operation** — upload failed, link expired, network down | A floating notice with the code and, where it applies, a retry button |
+
+A duplicate email (`EMAIL_TAKEN`, `409`) is a top-level code in the API, but it is about one
+field, so it renders under the email field.
 
 The API emits stable codes with parameters (`RF-23`); this application turns them into
 sentences. That mapping lives in one file.
