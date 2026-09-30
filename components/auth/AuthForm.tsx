@@ -114,7 +114,7 @@ export function AuthForm({ mode }: { mode: keyof typeof modes }) {
           role="alert"
           className="flex gap-2.5 rounded-[14px] border border-destructive/25 bg-destructive/8 px-3.5 py-3 text-sm font-semibold text-destructive"
         >
-          <CircleAlert className="mt-px size-[18px] shrink-0" />
+          <CircleAlert className="mt-px size-4.5 shrink-0" />
           {errors.root.message}
         </div>
       )}

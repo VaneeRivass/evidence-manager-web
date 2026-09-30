@@ -1,8 +1,16 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
+import { CaseList } from '@/components/cases/CaseList'
+import { CaseListSkeleton } from '@/components/cases/CaseListStates'
 
 export const metadata: Metadata = { title: 'Mis casos · Gestor de evidencias' }
 
-// The list and its three states arrive with #6 (RF-15)
+// CaseList reads the address (useSearchParams), which only exists in the browser: Next
+// needs a Suspense boundary around it, and shows the fallback until then
 export default function CasesPage() {
-  return <h1 className="text-2xl font-extrabold tracking-tight">Mis casos</h1>
+  return (
+    <Suspense fallback={<CaseListSkeleton />}>
+      <CaseList />
+    </Suspense>
+  )
 }
