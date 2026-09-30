@@ -1,7 +1,7 @@
 import type { UseFormSetError } from 'react-hook-form'
-import { toast } from 'sonner'
 import { ApiError } from '@/lib/api'
 import { message } from '@/lib/messages.es'
+import { notifyError } from '@/lib/notify'
 import type { Credentials } from '@/lib/schemas'
 
 // Where an API error renders on the sign-in forms — requirements, RF-18 and RF-19:
@@ -35,10 +35,5 @@ export function showAuthError(
     return
   }
 
-  // RF-19 · an operation error: floating, carries the code, waits to be dismissed
-  toast.error(message(err.code, err.params), {
-    description: err.code,
-    duration: Infinity,
-    closeButton: true,
-  })
+  notifyError(err)
 }

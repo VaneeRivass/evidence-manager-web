@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import type { Credentials } from '@/lib/schemas'
 
@@ -13,18 +13,35 @@ export function useLogin() {
   })
 }
 
-// RF-13 · registering signs the person in: the API's 201 carries no session. Both calls
-// use the values of this one submit; the password is not kept anywhere in between.
-// Resolves to null when the account was created but the login failed.
+// RF-13 · registering does not sign the person in: they sign in themselves
 export function useRegister() {
   return useMutation({
     mutationFn: async (credentials: Credentials) => {
       await api.post('/auth/register', credentials)
-      try {
-        return (await api.post<User>('/auth/login', credentials)).data
-      } catch {
-        return null
-      }
     },
+  })
+}
+
+// RF-03 · who is signed in. The cookie cannot be read from here (httpOnly), so the API
+// says. No retries: a 401 is an answer, not a hiccup, and the person must leave at once.
+export function useSession() {
+  return useQuery({
+    queryKey: ['session'],
+    queryFn: async () => (await api.get<User>('/auth/me')).data,
+    retry: false,
+    staleTime: Infinity,
+  })
+}
+
+// RF-04 · the API clears the cookie; the cache is emptied so the next person on this
+// browser never sees the previous one's data
+export function useLogout() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      await api.post('/auth/logout')
+    },
+    onSuccess: () => queryClient.clear(),
   })
 }
