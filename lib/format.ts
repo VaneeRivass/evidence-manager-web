@@ -43,6 +43,20 @@ const isSameDay = (a: Date, b: Date) =>
   a.getMonth() === b.getMonth() &&
   a.getDate() === b.getDate()
 
+const time = new Intl.DateTimeFormat('es', {
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
+// The case page's dates, exact rather than relative — mockup screen 8:
+// «hoy, 10:14» · «24 sept 2026»
+export function formatDate(iso: string, now = new Date()): string {
+  const date = new Date(iso)
+  return isSameDay(date, now)
+    ? `hoy, ${time.format(date)}`
+    : dayMonthYear.format(date)
+}
+
 const oneDecimal = new Intl.NumberFormat('es', { maximumFractionDigits: 1 })
 const KB = 1024
 const MB = 1024 * KB

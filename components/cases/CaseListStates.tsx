@@ -1,8 +1,8 @@
-import { CloudOff, FolderOpen, RotateCw } from 'lucide-react'
+import { FolderOpen } from 'lucide-react'
+import { SkeletonBar } from '@/components/SkeletonBar'
 import { StatePanel } from '@/components/StatePanel'
-import { Button } from '@/components/ui/button'
 import type { CaseStatus } from '@/lib/caseFilters'
-import { message } from '@/lib/messages.es'
+import { NewCaseButton } from './NewCaseButton'
 
 // RF-15 · the list is always one of these, or the table. Never a blank screen.
 
@@ -20,16 +20,16 @@ export function CaseListSkeleton() {
           key={row}
           className="grid gap-2 border-b px-4.5 py-4 last:border-b-0"
         >
-          <span className="h-3 w-56 max-w-full rounded-full bg-muted motion-safe:animate-pulse" />
-          <span className="h-2.5 w-80 max-w-full rounded-full bg-muted motion-safe:animate-pulse" />
+          <SkeletonBar className="h-3 w-56" />
+          <SkeletonBar className="h-2.5 w-80" />
         </div>
       ))}
     </div>
   )
 }
 
-// Empty: says there is nothing and why (mockup screen 5). With a filter, it names it.
-// The button to create the first case arrives with creation, in #7.
+// Empty: says there is nothing and why (mockup screen 5). With a filter, it names it;
+// without one, it offers to create the first case (RF-15).
 export function CaseListEmpty({ status }: { status?: CaseStatus }) {
   return (
     <StatePanel
@@ -45,32 +45,12 @@ export function CaseListEmpty({ status }: { status?: CaseStatus }) {
           ? 'Cambia el filtro para ver el resto de tus casos.'
           : 'Crea un caso para registrar una incidencia. Después podrás adjuntarle el archivo que la respalda.'
       }
-    />
-  )
-}
-
-// Error: the API's code in view and a way to try again (mockup screen 6)
-export function CaseListError({
-  code,
-  onRetry,
-}: {
-  code: string
-  onRetry: () => void
-}) {
-  return (
-    <StatePanel
-      icon={<CloudOff />}
-      tone="destructive"
-      title="No pudimos cargar tus casos"
-      text={message(code)}
     >
-      <code className="rounded-md bg-muted px-2 py-0.5 text-[11.5px] text-slate">
-        {code}
-      </code>
-      <Button variant="outline" onClick={onRetry} className="mt-2 rounded-full">
-        <RotateCw />
-        Reintentar
-      </Button>
+      {!status && (
+        <div className="mt-2">
+          <NewCaseButton>Crear mi primer caso</NewCaseButton>
+        </div>
+      )}
     </StatePanel>
   )
 }

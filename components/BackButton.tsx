@@ -8,11 +8,7 @@ import { Button } from '@/components/ui/button'
 export function BackButton() {
   const router = useRouter()
   return (
-    <Button
-      variant="outline"
-      onClick={() => router.back()}
-      className="rounded-full"
-    >
+    <Button variant="outline" onClick={() => router.back()}>
       <ArrowLeft />
       Volver
     </Button>
