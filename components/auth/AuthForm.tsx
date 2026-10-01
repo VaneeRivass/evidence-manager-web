@@ -6,9 +6,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { FormField, ariaFor, inputClass } from '@/components/FormField'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { useLogin, useRegister } from '@/hooks/useAuth'
 import { type Credentials, loginSchema, registerSchema } from '@/lib/schemas'
 import { showAuthError } from './showAuthError'
@@ -35,9 +35,6 @@ const modes = {
     switchLink: { href: '/login', label: 'Entrar' },
   },
 } as const
-
-// The mockup's inputs: taller and rounder than shadcn's default
-const inputClass = 'h-11 rounded-[14px] bg-card px-3.5'
 
 export function AuthForm({ mode }: { mode: keyof typeof modes }) {
   const copy = modes[mode]
@@ -87,29 +84,31 @@ export function AuthForm({ mode }: { mode: keyof typeof modes }) {
         )}
       </div>
 
-      <Field id="email" label="Correo" error={errors.email?.message}>
+      <FormField id="email" label="Correo" error={errors.email?.message}>
         <Input
           id="email"
           type="email"
           autoComplete="email"
-          aria-invalid={!!errors.email}
-          aria-describedby={errors.email ? 'email-error' : undefined}
+          {...ariaFor('email', errors.email?.message)}
           className={inputClass}
           {...field('email')}
         />
-      </Field>
+      </FormField>
 
-      <Field id="password" label="Contraseña" error={errors.password?.message}>
+      <FormField
+        id="password"
+        label="Contraseña"
+        error={errors.password?.message}
+      >
         <Input
           id="password"
           type="password"
           autoComplete={copy.passwordAutocomplete}
-          aria-invalid={!!errors.password}
-          aria-describedby={errors.password ? 'password-error' : undefined}
+          {...ariaFor('password', errors.password?.message)}
           className={inputClass}
           {...field('password')}
         />
-      </Field>
+      </FormField>
 
       {errors.root && (
         <div
@@ -124,7 +123,7 @@ export function AuthForm({ mode }: { mode: keyof typeof modes }) {
       <Button
         type="submit"
         disabled={mutation.isPending}
-        className="h-11 w-full rounded-full text-sm font-semibold shadow-[0_6px_16px_rgba(79,104,241,.28)]"
+        className="h-11 w-full text-sm"
       >
         {copy.submit}
       </Button>
@@ -139,36 +138,5 @@ export function AuthForm({ mode }: { mode: keyof typeof modes }) {
         </Link>
       </p>
     </form>
-  )
-}
-
-function Field({
-  id,
-  label,
-  error,
-  children,
-}: {
-  id: string
-  label: string
-  error?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="grid gap-1.5">
-      <Label htmlFor={id} className="font-semibold">
-        {label}
-      </Label>
-      {children}
-      {/* RF-18 · the error sits next to the field that caused it */}
-      {error && (
-        <p
-          id={`${id}-error`}
-          className="flex items-center gap-1.5 text-[12.5px] text-destructive"
-        >
-          <CircleAlert className="size-3.5 shrink-0" />
-          {error}
-        </p>
-      )}
-    </div>
   )
 }

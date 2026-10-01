@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { Case } from '@/hooks/useCases'
 import { formatSize, formatWhen } from '@/lib/format'
-import { cn } from '@/lib/utils'
+import { FileIcon, StatusPill } from './CaseBadges'
 
 // Mockup screen 3. The whole row opens the case on click, which is what people expect of a
 // list. The title stays a real <a>, so the keyboard and screen readers reach it too.
@@ -34,8 +34,13 @@ export function CaseTable({ items }: { items: Case[] }) {
               }}
               className="cursor-pointer border-b last:border-b-0 hover:bg-[#fafbff]"
             >
+              {/* wrap-anywhere: a title without spaces would stretch the column and push
+                  the others out of the table */}
               <td className="px-4.5 py-3.5">
-                <Link href={`/cases/${item.id}`} className="font-semibold">
+                <Link
+                  href={`/cases/${item.id}`}
+                  className="line-clamp-2 font-semibold wrap-anywhere"
+                >
                   {item.title}
                 </Link>
                 <p className="mt-0.5 max-w-[42ch] truncate text-[12.5px] text-muted-foreground">
@@ -59,39 +64,14 @@ export function CaseTable({ items }: { items: Case[] }) {
   )
 }
 
-function StatusPill({ status }: { status: Case['status'] }) {
-  const open = status === 'OPEN'
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold before:size-1.5 before:rounded-full before:bg-current',
-        open
-          ? 'bg-secondary text-secondary-foreground'
-          : 'bg-muted text-muted-foreground',
-      )}
-    >
-      {open ? 'Abierto' : 'Cerrado'}
-    </span>
-  )
-}
-
-const kinds: Record<string, { label: string; kind: 'pdf' | 'image' }> = {
-  'application/pdf': { label: 'PDF', kind: 'pdf' },
-  'image/png': { label: 'PNG', kind: 'image' },
-  'image/jpeg': { label: 'JPG', kind: 'image' },
-}
-
 function Evidence({ item }: { item: Case }) {
   if (!item.fileName) {
     return <span className="text-[13px] text-[#9aa0bb]">Sin evidencia</span>
   }
 
-  const type = kinds[item.fileType ?? '']
   return (
     <span className="inline-flex items-center gap-2 text-[13px]">
-      <span aria-hidden className="file-icon" data-kind={type?.kind}>
-        {type?.label}
-      </span>
+      <FileIcon type={item.fileType} />
       <span className="max-w-[18ch] truncate">{item.fileName}</span>
       {item.fileSize !== null && (
         <small className="text-muted-foreground">

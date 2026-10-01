@@ -3,6 +3,7 @@
 import { LogOut } from 'lucide-react'
 import Link from 'next/link'
 import { Brand } from '@/components/Brand'
+import { SkeletonBar } from '@/components/SkeletonBar'
 import { Button } from '@/components/ui/button'
 import { useLogout, useSession } from '@/hooks/useAuth'
 import { notifyError } from '@/lib/notify'
@@ -34,13 +35,13 @@ export function TopBar() {
           </>
         ) : (
           // The same space the email will take, so the bar does not jump
-          <span className="h-4 w-40 animate-pulse rounded-full bg-muted" />
+          <SkeletonBar className="h-4 w-40" />
         )}
         <Button
           variant="ghost"
           onClick={() => logout.mutate(undefined, { onError: notifyError })}
           disabled={logout.isPending}
-          className="rounded-full text-[13px] text-muted-foreground"
+          className="text-muted-foreground"
         >
           <LogOut />
           Salir

@@ -119,12 +119,46 @@ application does not recognise is dropped and the default used instead.
 others: showing *Open 3 · Closed 1* would take three requests on every load. Under the title,
 the number of cases in view.
 
-**With a filter, the empty state names it**: *You have no closed cases*. The button to create
-the first case arrives with creation itself (#7).
+**With a filter, the empty state names it**: *You have no closed cases*. Without one, it
+offers to create the first case; the list's header always carries **New case**.
 
 **More than 100 cases:** the API answers at most 100, newest first, and `total` counts all of
 them. When `total` is larger, a line says so. Pagination controls are out of scope (known
 limitations).
+
+### RF-16 · Managing a case
+
+**Creating** asks for the title and the description only, in a dialog over the list (mockup
+screen 7); the evidence is attached afterwards, from the case. Saving opens the new case.
+**Editing** is the same dialog, filled in (screen 15); the status is not edited there. Its
+save button stays disabled until something changes: the API would store an unchanged edit
+and move the case to the top of the list as if it had been modified.
+
+The limits are the API's (`RF-05`): title 1 to 120, description 1 to 2000, both trimmed. **The
+limit that binds is the API's Zod validation, not the database column**: Zod's `.max()`
+counts the string's `.length` — UTF-16 units, so an emoji counts as 2 where PostgreSQL counts
+1. This application counts the same way, with the same Zod rule, so whatever the browser
+accepts the API accepts too. Not bytes: only the password is measured in bytes, because of
+its hashing algorithm. The title shows its count, as in the mockup: *28 / 120*.
+
+**Closing and reopening** is one button on the case, whose label follows the status
+(screen 14). No confirmation: it can be undone.
+
+**Deleting** asks first (`RF-20`, screen 16) and returns to the list.
+
+**The case page** (`/cases/[id]`) shows the case, with its actions. The evidence panel beside
+it arrives with the upload (`RF-17`). A case that does not exist, belongs to someone else or
+has a malformed address shows the same screen — *No encontramos este caso*, inside the
+private layout. Telling a stranger that a case exists but is not theirs is already telling
+them something. A request that gets no answer shows the error state with a retry button, as
+the list does.
+
+**After any change, every list refreshes itself**: the mutation invalidates the list's
+query key, whatever its filters. Nothing is refreshed by hand.
+
+**Success notices** only where the result is not on screen: deleting, which leaves the case.
+Created, edited, closed or reopened, the change is already visible where the person is
+looking.
 
 ### RF-17 · The upload, from the client's side
 

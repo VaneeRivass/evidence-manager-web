@@ -14,3 +14,9 @@ export function notifyError(error: unknown) {
     closeButton: true,
   })
 }
+
+// RF-19 · a success notice, which dismisses itself — only where the result is not on
+// screen (RF-16)
+export function notifySuccess(text: string) {
+  toast.success(text)
+}

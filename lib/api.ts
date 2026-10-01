@@ -35,6 +35,13 @@ export const toApiError = (error: unknown): ApiError =>
 export const isUnauthenticated = (error: unknown): boolean =>
   error instanceof ApiError && error.code === 'UNAUTHENTICATED'
 
+// The resource is not there for this person: missing, someone else's, or a malformed id
+// the API rejects before looking. One answer for all three, so a stranger cannot tell
+// that something exists (RF-16).
+const NOT_FOUND = ['CASE_NOT_FOUND', 'CASE_FORBIDDEN', 'VALIDATION_ERROR']
+export const isNotFound = (error: unknown): boolean =>
+  error instanceof ApiError && NOT_FOUND.includes(error.code)
+
 // Relative on purpose: the rewrite in next.config.ts forwards /api to the API (RNF-09)
 export const api = axios.create({ baseURL: '/api' })
 

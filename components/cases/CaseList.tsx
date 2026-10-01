@@ -1,16 +1,14 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
+import { LoadError } from '@/components/LoadError'
 import { useCases } from '@/hooks/useCases'
 import { toApiError } from '@/lib/api'
 import { type CaseStatus, readFilters } from '@/lib/caseFilters'
 import { CaseFilters } from './CaseFilters'
-import {
-  CaseListEmpty,
-  CaseListError,
-  CaseListSkeleton,
-} from './CaseListStates'
+import { CaseListEmpty, CaseListSkeleton } from './CaseListStates'
 import { CaseTable } from './CaseTable'
+import { NewCaseButton } from './NewCaseButton'
 
 // RF-15 · the list: the filters from the address, then exactly one of loading, error,
 // empty or the table
@@ -20,11 +18,14 @@ export function CaseList() {
 
   return (
     <>
-      <div>
-        <h1 className="text-2xl font-extrabold tracking-tight">Mis casos</h1>
-        <p className="mt-0.5 h-5 text-[13px] text-muted-foreground">
-          {cases.data && countText(cases.data.total, filters.status)}
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight">Mis casos</h1>
+          <p className="mt-0.5 h-5 text-[13px] text-muted-foreground">
+            {cases.data && countText(cases.data.total, filters.status)}
+          </p>
+        </div>
+        <NewCaseButton>Nuevo caso</NewCaseButton>
       </div>
 
       <CaseFilters filters={filters} />
@@ -48,7 +49,8 @@ function Body({
 
   if (cases.isError) {
     return (
-      <CaseListError
+      <LoadError
+        title="No pudimos cargar tus casos"
         code={toApiError(cases.error).code}
         onRetry={() => cases.refetch()}
       />

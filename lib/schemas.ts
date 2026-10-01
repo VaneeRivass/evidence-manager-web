@@ -45,3 +45,23 @@ export const loginSchema = z.object({
 })
 
 export type Credentials = z.infer<typeof loginSchema>
+
+// RF-05 · a case's title and description, the API's Zod rule copied: trimmed, then 1 to the
+// column's size. Zod's .max() counts .length (UTF-16 units: an emoji counts as 2), and so
+// does this — whatever the browser accepts, the API accepts too.
+export const TITLE_MAX = 120
+export const DESCRIPTION_MAX = 2000
+
+const requiredText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .min(1, message('TOO_SHORT', { min: 1 }))
+    .max(max, message('TOO_LONG', { max }))
+
+export const caseSchema = z.object({
+  title: requiredText(TITLE_MAX),
+  description: requiredText(DESCRIPTION_MAX),
+})
+
+export type CaseInput = z.infer<typeof caseSchema>

@@ -54,6 +54,8 @@ app/
   providers.tsx          TanStack Query client and the notices' Toaster
 components/
   ui/                    shadcn — do not lint, do not reformat
+  FormField.tsx          label, input and the error under it — every form
+  StatePanel.tsx         empty, error and not-found screens; LoadError.tsx builds on it
   auth/ cases/           domain components
 hooks/
   useAuth.ts             TanStack Query. The only place that knows API routes
@@ -65,6 +67,7 @@ lib/
   messages.es.ts         error code → Spanish text
   notify.ts              the floating notice for operation errors (RF-19)
   session.ts             goToLogin: a full page load, which drops the cache (RF-04, RF-14)
+  formErrors.ts          puts an API's field errors on a form's own fields (RF-18)
   caseFilters.ts         the list's filter and ordering, to and from the address
   format.ts              dates and sizes in Spanish, with Intl
 proxy.ts                 route guard (Next 16 renamed middleware.ts to proxy.ts).
