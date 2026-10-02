@@ -5,11 +5,11 @@ import { CircleAlert } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
 import { FormField, ariaFor, inputClass } from '@/components/FormField'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useLogin, useRegister } from '@/hooks/useAuth'
+import { notifySuccess } from '@/lib/notify'
 import { type Credentials, loginSchema, registerSchema } from '@/lib/schemas'
 import { showAuthError } from './showAuthError'
 
@@ -60,7 +60,7 @@ export function AuthForm({ mode }: { mode: keyof typeof modes }) {
           return
         }
         // RF-13 · registering does not sign the person in
-        toast.success('Cuenta creada. Ya puedes entrar.')
+        notifySuccess('Cuenta creada. Ya puedes entrar.')
         router.replace('/login')
       },
       onError: (error) => {

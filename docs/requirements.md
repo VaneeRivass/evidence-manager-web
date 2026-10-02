@@ -25,7 +25,7 @@ exactly one file.
 | **RF-16** | Create, edit, change status and delete from the interface |
 | **RF-17** | Attach evidence by dropping a file or picking it, and download it. A chosen file is **shown for confirmation before anything is sent**, because evidence cannot be replaced once attached. The upload is **one action with one progress bar**: the three calls behind it (request link → upload → confirm) are never shown as steps |
 | **RF-18** | **Validation errors** appear next to the field that caused them |
-| **RF-19** | **Operation errors** — failed upload, expired link, network down — appear as a floating notice carrying the API error code and, when the action can be repeated, a retry button. Success notices dismiss themselves; error notices wait to be dismissed |
+| **RF-19** | **Operation errors** — failed upload, expired link, network down — appear as a floating notice carrying the API error code. The action's own button, still on screen, is the retry. Success notices close after a few seconds, error notices after ten; the same error is never shown twice at once |
 | **RF-20** | Every destructive action requires explicit confirmation. The dialog **names what is lost** — the case and its evidence — and warns it cannot be undone. A generic "are you sure?" is not enough |
 
 ---
@@ -144,10 +144,12 @@ save button stays disabled until something changes: the API would store an uncha
 and move the case to the top of the list as if it had been modified.
 
 The limits are the API's (`RF-05`): title 1 to 120, description 1 to 2000, both trimmed. **The
-limit that binds is the API's Zod validation, not the database column**: Zod's `.max()`
-counts the string's `.length` — UTF-16 units, so an emoji counts as 2 where PostgreSQL counts
-1. This application counts the same way, with the same Zod rule, so whatever the browser
-accepts the API accepts too. Not bytes: only the password is measured in bytes, because of
+limit that binds is the API's Zod validation**: Zod 4's `.max()` counts characters (code
+points), so an emoji counts as 1 — as PostgreSQL's `VARCHAR` does — even though its
+JavaScript `.length` is 2. This application uses the same Zod rule, so whatever the browser
+accepts the API accepts too, and the title's counter counts the same way. An emoji drawn
+from several pieces counts each one: 🚶‍♂️ is a person, a joiner, a sign and a style mark — 4.
+Not bytes: only the password is measured in bytes, because of
 its hashing algorithm. The title shows its count, as in the mockup: *28 / 120*.
 
 **Closing and reopening** is one button on the case, whose label follows the status
@@ -169,7 +171,8 @@ query key, whatever its filters. Nothing is refreshed by hand.
 person — another window attached a file (`FILE_ALREADY_ATTACHED`) or deleted the case
 (`CASE_NOT_FOUND`). The page then shows what is true: the file attached, or *No encontramos
 este caso* — instead of keeping buttons that fail the same way. A refetch that gets no answer
-keeps the case on screen.
+keeps the case on screen. **Not after `NETWORK_ERROR`**: the change never reached the server,
+so nothing changed, and asking again would only fail the same way.
 
 **Success notices** only where the result is not on screen: deleting, which leaves the case.
 Created, edited, closed or reopened, the change is already visible where the person is
@@ -242,7 +245,7 @@ stays where it is; the person never sees the link or its 60 seconds.
 |---|---|
 | **Validation** — `400` with fields | Next to the field, through the form library's error API |
 | **About the whole form** — wrong credentials (`INVALID_CREDENTIALS`) | Inside the form, above its button. The message only, without the code, like field errors. The API does not say which field failed, on purpose (`RF-02`), so it cannot sit under one |
-| **Operation** — upload failed, link expired, network down | A floating notice with the code and, where it applies, a retry button |
+| **Operation** — upload failed, link expired, network down | A floating notice with the code. The action's own button is the retry |
 
 A duplicate email (`EMAIL_TAKEN`, `409`) is a top-level code in the API, but it is about one
 field, so it renders under the email field.
@@ -285,6 +288,31 @@ for the code to be passed on instead. Mockup screen 23 maps every code to where 
 (mockup screen 24). It is there to ask for help with; the message and the retry lead. The
 response itself is visible to anyone with the browser's developer tools, which is why the
 API sends only the code, its parameters and a `requestId` — the details stay in its log.
+
+**The floating notice** (mockup screens 17 and 25). One look for all of them: a line icon —
+a green check for success, a red **!** in a circle for an error, no filled background — the
+message in bold and, on an error, the code under it. A success notice closes by itself after
+a few seconds, an error notice after ten — long enough to read the code, and pointing at it
+pauses the count. Errors used to wait to be closed; in testing they piled up behind one
+another, unread. The same error is never shown twice at once: a new one replaces the notice
+with its code, so ten failures offline leave one notice, not ten. If it happens again after
+it has gone, it shows again.
+
+**A notice carries no retry button.** After a failed action its own button is still on
+screen, next to where the person is looking — **Cerrar caso**, **Descargar**, the form's
+**Guardar**, the chosen file's **Adjuntar** (`RF-17`) — and pressing it again is the retry. A
+second button in the corner would do the same, farther away. Retry is a button only where
+nothing else could repeat the request: the error screens of the list and of a case (mockup
+screens 6 and 22), where the error is the whole page.
+
+Only two actions announce success: deleting a case (*Caso eliminado*), because the case
+leaves the screen, and creating an account (*Cuenta creada. Ya puedes entrar.*), because it
+lands on the sign-in page. Every other change is already visible where it happened.
+
+**Every failed action reaches the notice from one place**, the query client's mutation
+cache, so a new action cannot forget to show its error, and it shows even if the screen
+that started the action is gone. A form only says which errors it places itself — on a
+field, or inside the form — and every other error is a notice like the rest.
 
 ---
 
@@ -358,7 +386,7 @@ controls are missing.
 
 **Tests substitute the API client directly**, rather than intercepting network requests.
 Mock Service Worker would be the canonical choice and is the next increment; setting it up
-costs more than it returns for three tests.
+costs more than it returns for this handful of tests.
 
 **Types are duplicated, not generated.** The validation schemas mirror the API's by hand,
 because the repositories are independent and publishing a shared package would couple their

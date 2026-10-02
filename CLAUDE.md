@@ -52,7 +52,9 @@ app/
                          layout. It renders the screen itself — notFound() would drop
                          the top bar
   layout.tsx
-  providers.tsx          TanStack Query client and the notices' Toaster
+  providers.tsx          TanStack Query client and the notices' Toaster. Every failed
+                         action's notice comes from here, not from each button; a form
+                         only says which errors it places on its fields (meta)
 components/
   ui/                    shadcn — do not lint, do not reformat
   FormField.tsx          label, input and the error under it — every form
@@ -67,7 +69,7 @@ lib/
   schemas.ts             Zod
   files.ts               the evidence's allowed types and size, copied from the API (RF-17)
   messages.es.ts         error code → Spanish text
-  notify.ts              the floating notice for operation errors (RF-19)
+  notify.tsx             the floating notices, error and success (RF-19)
   session.ts             goToLogin: a full page load, which drops the cache (RF-04, RF-14)
   formErrors.ts          puts an API's field errors on a form's own fields (RF-18)
   caseFilters.ts         the list's filter and ordering, to and from the address
@@ -141,7 +143,9 @@ skeleton, not the word "loading", so the page does not jump when data arrives.
 
 **Two kinds of error, two placements.** Validation errors render next to the field that
 caused them. Operation errors — failed upload, expired link, network down — render as a
-floating notice carrying the API code and, when the action can be repeated, a retry button.
+floating notice carrying the API code. The notice has no retry button: the action's own
+button is still on screen and is the retry. Only the error screens, where the error is the
+whole page, carry one (RF-15, RF-19).
 
 **`components/ui/` is not linted and not reformatted.** It is shadcn's code, copied in.
 Fighting its style produces diff noise for nothing.
@@ -184,9 +188,15 @@ npm run dev                                (here, port 3000)
 
 ## Testing
 
-Few and well chosen: the list in its three states, and that the file input rejects a wrong
-type or an oversized file **without calling the API**.
+Few and well chosen, on what a person sees and on rules that are cheap to break:
+
+| What | Where |
+|---|---|
+| The list: loading, empty, error, and with cases | `CaseList.test.tsx` |
+| The file input rejects a wrong type or an oversized file **without calling the API** | `EvidencePanel.test.tsx` |
+| Every failed action gets a notice, except the errors a form places itself — even once the form has closed | `app/providers.test.tsx` |
+| The rules copied from the API: file type and size at the limit, title and description lengths, password bytes | `lib/files.test.ts`, `lib/schemas.test.ts` |
+| Sizes as a person reads them | `lib/format.test.ts` |
 
 The API client is substituted with `vi.mock()`. MSW would be the canonical choice and is
-noted in the README as the next increment; setting it up costs more than it returns for
-three tests.
+noted in the README as the next increment; setting it up costs more than it returns here.

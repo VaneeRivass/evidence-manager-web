@@ -1,6 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '@/lib/api'
+import {
+  type MutationMeta,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
+import { api, isNetworkError } from '@/lib/api'
 import type { CaseFilters, CaseStatus } from '@/lib/caseFilters'
+import { placedOnCaseForm } from '@/lib/formErrors'
 import type { CaseInput } from '@/lib/schemas'
 
 // The only place that knows the case routes. How a request is made lives in lib/api.ts.
@@ -51,37 +57,43 @@ export function useCase(id: string) {
 // After a failed change the case may have changed under the person — another window
 // attached a file, or deleted the case — so the case page asks for it again and shows what
 // is true: a 404 turns it into «No encontramos este caso» (RF-16). Only an open page
-// refetches; on NETWORK_ERROR it keeps the case it has.
-// `onError` is for what must happen even if the screen is gone by then: a callback given to
-// `mutate()` is dropped once its component unmounts, one given here is not.
+// refetches. Not on NETWORK_ERROR: nothing reached the server, so nothing changed, and asking
+// again would only fail the same way. The notice is not here: every failed
+// action gets it from the query client (providers.tsx).
 export function useCaseMutation<Variables>(
   mutationFn: (variables: Variables) => Promise<Case>,
-  options: { onError?: (error: unknown) => void } = {},
+  meta?: MutationMeta,
 ) {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn,
+    meta,
     onSuccess: (item) => {
       queryClient.setQueryData(['case', item.id], item)
       queryClient.invalidateQueries({ queryKey: ['cases'] })
     },
     onError: (error) => {
-      queryClient.invalidateQueries({ queryKey: ['case'] })
-      options.onError?.(error)
+      if (!isNetworkError(error)) {
+        queryClient.invalidateQueries({ queryKey: ['case'] })
+      }
     },
   })
 }
 
 // RF-05 · RF-08 · the dialog's title and description: a new case without one, an edit with
-// it. One mutation, so the form never holds one it does not use.
+// it. One mutation, so the form never holds one it does not use. Its field errors go under
+// the field (RF-18); any other is a notice.
 export const useSaveCase = (item?: Case) =>
-  useCaseMutation(async (input: CaseInput) => {
-    const request = item
-      ? api.patch<Case>(casePath(item.id), input)
-      : api.post<Case>('/cases', input)
-    return (await request).data
-  })
+  useCaseMutation(
+    async (input: CaseInput) => {
+      const request = item
+        ? api.patch<Case>(casePath(item.id), input)
+        : api.post<Case>('/cases', input)
+      return (await request).data
+    },
+    { placedByForm: placedOnCaseForm },
+  )
 
 // RF-08 · closing and reopening, from the case page's button
 export const useCaseStatus = (id: string) =>
@@ -120,6 +132,10 @@ export function useDeleteCase(id: string) {
       queryClient.invalidateQueries({ queryKey: ['cases'] })
     },
     // As for every failed change (useCaseMutation): deleted elsewhere, the page shows so
-    onError: () => queryClient.invalidateQueries({ queryKey: ['case', id] }),
+    onError: (error) => {
+      if (!isNetworkError(error)) {
+        queryClient.invalidateQueries({ queryKey: ['case', id] })
+      }
+    },
   })
 }
