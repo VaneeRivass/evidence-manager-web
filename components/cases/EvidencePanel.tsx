@@ -238,8 +238,10 @@ function AttachedFile({ item }: { item: Case }) {
   const download = useDownloadFile(item.id)
 
   return (
-    <div className="grid gap-2.5">
-      <div className="grid gap-3 rounded-2xl border p-3.5 sm:flex sm:items-center">
+    // The card measures itself, not the screen: in the case page's narrow column the button
+    // goes under the name, so the name keeps the width (mockup screen 13)
+    <div className="@container grid gap-2.5">
+      <div className="grid gap-3 rounded-2xl border p-3.5 @md:flex @md:items-center">
         <FileSummary
           type={item.fileType}
           name={item.fileName ?? ''}
@@ -286,7 +288,11 @@ function FileSummary({
     <div className="flex min-w-0 flex-1 items-center gap-3">
       <FileIcon type={type} className={iconClass} />
       <div className="grid min-w-0 flex-1">
-        <span title={name} className="truncate text-[13.5px] font-semibold">
+        {/* Up to two lines, the full name on pointing at it (mockup screen 13) */}
+        <span
+          title={name}
+          className="line-clamp-2 text-[13.5px] font-semibold wrap-anywhere"
+        >
           {name}
         </span>
         <span className="text-xs text-muted-foreground tabular-nums">

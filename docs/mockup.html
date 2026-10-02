@@ -158,6 +158,11 @@ body { background: var(--page-bg); color: var(--page-ink); font-family: var(--fo
 .up { display: grid; gap: 10px; border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
 .up-row { display: flex; gap: 12px; align-items: center; }
 .up-name { font-weight: 600; font-size: 13.5px; }
+/* Screen 13: a long name takes two lines, the rest is cut; pointing at it shows it whole. In the
+   narrow column the button goes under the name, so the name keeps the width */
+.evid.stacked { display: grid; grid-template-columns: auto 1fr; }
+.evid.stacked .btn { grid-column: 1 / -1; justify-content: center; }
+.evid .up-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
 .up-sub { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .bar { height: 8px; background: #eef0f5; border-radius: 999px; overflow: hidden; }
 .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--blue), #7d8ff6); border-radius: inherit; }
@@ -424,7 +429,7 @@ body { background: var(--page-bg); color: var(--page-ink); font-family: var(--fo
       <div class="shade"><div class="dialog">
         <div><h3>Nuevo caso</h3><p class="sub">Podrás adjuntar la evidencia en el siguiente paso.</p></div>
         <div class="field"><label for="n-title">Título</label><div class="input focus" id="n-title">Pérdida de portátil en viaje</div><span class="counter">28 / 120</span></div>
-        <div class="field"><label for="n-desc">Descripción</label><div class="input textarea ph" id="n-desc">Qué pasó, cuándo y a quién afecta…</div></div>
+        <div class="field"><label for="n-desc">Descripción</label><div class="input textarea ph" id="n-desc">Qué pasó, cuándo y a quién afecta…</div><span class="counter">0 / 2000</span></div>
         <div class="btns"><span class="btn btn-outline">Cancelar</span><span class="btn btn-primary">Crear caso</span></div>
       </div></div>
     </div></div>
@@ -577,7 +582,7 @@ body { background: var(--page-bg); color: var(--page-ink); font-family: var(--fo
   <!-- 11 DETAIL WITH FILE -->
   <section class="view" id="v-detail-file">
     <div class="view-head"><h2>13 · Detalle con evidencia</h2><span class="rf">RF-12</span><span class="rf">RF-17</span></div>
-    <p class="view-note">Al pulsar «Descargar» se pide un enlace nuevo en ese momento y el archivo se guarda solo. El enlace dura 60 segundos, pero la persona no necesita saberlo: nunca lo ve.</p>
+    <p class="view-note">Al pulsar «Descargar» se pide un enlace nuevo en ese momento y el archivo se guarda solo. El enlace dura 60 segundos, pero la persona no necesita saberlo: nunca lo ve. Un nombre largo ocupa hasta dos líneas; con el ratón encima se ve entero. Como la columna es estrecha, «Descargar» va debajo del nombre, a todo el ancho, para que el nombre tenga sitio; si la tarjeta es ancha, va al lado.</p>
     <div class="frame"><div class="app">
       <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
       <div class="main">
@@ -591,9 +596,9 @@ body { background: var(--page-bg); color: var(--page-ink); font-family: var(--fo
           </div>
           <div class="panel card">
             <h4>Evidencia</h4>
-            <div class="evid">
+            <div class="evid stacked">
               <span class="ficon pdf">PDF</span>
-              <div class="evid-body"><div class="up-name">factura-hotel.pdf</div><div class="up-sub">PDF de 1,2 MB</div><span class="ok"><svg><use href="#i-check"/></svg>Verificada</span></div>
+              <div class="evid-body"><div class="up-name" title="factura-hotel-valencia-agosto-2026-con-sello-del-proveedor-revisada.pdf">factura-hotel-valencia-agosto-2026-con-sello-del-proveedor-revisada.pdf</div><div class="up-sub">PDF de 1,2 MB</div><span class="ok"><svg><use href="#i-check"/></svg>Verificada</span></div>
               <span class="btn btn-primary"><svg><use href="#i-down"/></svg>Descargar</span>
             </div>
             <p class="hint" style="margin:0">Cada caso guarda un único archivo y no se puede reemplazar.</p>
@@ -634,14 +639,14 @@ body { background: var(--page-bg); color: var(--page-ink); font-family: var(--fo
   <!-- 13 EDIT -->
   <section class="view" id="v-edit">
     <div class="view-head"><h2>15 · Editar</h2><span class="rf">RF-16</span><span class="rf">RF-08</span></div>
-    <p class="view-note">El mismo diálogo que «Nuevo caso», relleno. El estado no se toca aquí: tiene su propio botón en el detalle.</p>
+    <p class="view-note">El mismo diálogo que «Nuevo caso», relleno. El estado no se toca aquí: tiene su propio botón en el detalle. Título y descripción llevan su contador, que cuenta igual que el API.</p>
     <div class="frame"><div class="app" style="min-height:560px">
       <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span></div></div>
       <div class="main"><div class="panel" style="height:360px"></div></div>
       <div class="shade"><div class="dialog">
         <h3>Editar caso</h3>
         <div class="field"><label for="e-title">Título</label><div class="input" id="e-title">Pérdida de portátil en viaje</div><span class="counter">28 / 120</span></div>
-        <div class="field"><label for="e-desc">Descripción</label><div class="input textarea focus" id="e-desc">El equipo asignado a Marta López se extravió en el aeropuerto de Barajas el 16 de septiembre. Se bloqueó la cuenta en remoto.</div></div>
+        <div class="field"><label for="e-desc">Descripción</label><div class="input textarea focus" id="e-desc">El equipo asignado a Marta López se extravió en el aeropuerto de Barajas el 16 de septiembre. Se bloqueó la cuenta en remoto.</div><span class="counter">124 / 2000</span></div>
         <div class="btns"><span class="btn btn-outline">Cancelar</span><span class="btn btn-primary">Guardar cambios</span></div>
       </div></div>
     </div></div>

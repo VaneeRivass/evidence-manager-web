@@ -15,7 +15,7 @@ export const ariaFor = (id: string, error?: string) => ({
 })
 
 // A label, its input and — RF-18 — the error right under the field that caused it.
-// `aside` sits at the label's right: the title's character count.
+// `aside` sits at the label's right: a character count.
 export function FormField({
   id,
   label,
