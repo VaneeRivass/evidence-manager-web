@@ -20,8 +20,8 @@ export function CaseListSkeleton() {
           key={row}
           className="grid gap-2 border-b px-4.5 py-4 last:border-b-0"
         >
-          <SkeletonBar className="h-3 w-56" />
-          <SkeletonBar className="h-2.5 w-80" />
+          <SkeletonBar className="h-3 w-56 max-w-full" />
+          <SkeletonBar className="h-2.5 w-80 max-w-full" />
         </div>
       ))}
     </div>

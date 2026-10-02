@@ -2,6 +2,11 @@
 // parameters (RF-23); the text is decided here, and only here.
 
 import type { Params } from './api'
+import { ALLOWED_FILES, listFileTypes } from './files'
+import { formatSize } from './format'
+
+const caseGone = 'Este caso ya no existe. Puede que se haya eliminado.'
+const couldNotVerify = 'No pudimos verificar el archivo. Inténtalo de nuevo.'
 
 const messages: Record<string, (params: Params) => string> = {
   // Field codes, inside a VALIDATION_ERROR — or raised by lib/schemas.ts in the browser
@@ -14,17 +19,55 @@ const messages: Record<string, (params: Params) => string> = {
   VALIDATION_ERROR: () => 'Revisa los datos: hay alguno que no es válido.',
   UNAUTHENTICATED: () => 'Tu sesión ha caducado. Vuelve a entrar.',
 
+  // RF-07 · one sentence for both: a stranger cannot tell a case exists (RF-16)
+  CASE_NOT_FOUND: () => caseGone,
+  CASE_FORBIDDEN: () => caseGone,
+
   EMAIL_TAKEN: () => 'Ya existe una cuenta con este correo.',
   INVALID_CREDENTIALS: () => 'El correo o la contraseña no son correctos.',
+
+  // RF-17 · with a name, the browser rejected the file next to the drop area (mockup screen
+  // 12); without one, the API did, in a notice — with its own list, which is the one that
+  // binds (RF-10: «image/jpeg, image/png, application/pdf»)
+  FILE_TYPE_NOT_ALLOWED: ({ name, allowed }) =>
+    `${name ? `«${name}»` : 'Este tipo de archivo'} no se puede adjuntar: solo se admiten ${
+      allowed
+        ? listFileTypes(
+            String(allowed)
+              .split(',')
+              .map((type) => type.trim()),
+          )
+        : ALLOWED_FILES
+    }.`,
+  FILE_TOO_LARGE: ({ name, size, max }) =>
+    name
+      ? `«${name}» pesa ${formatSize(Number(size))} y el máximo es ${formatSize(Number(max))}.`
+      : `El archivo supera el máximo de ${formatSize(Number(max))}.`,
+  FILE_ALREADY_ATTACHED: () =>
+    'Este caso ya tiene un archivo, y la evidencia no se puede cambiar.',
+  // RF-17 · interrupted: the upload to storage itself (lib/api.ts)
+  UPLOAD_FAILED: () =>
+    'La subida se interrumpió. Revisa tu conexión e inténtalo de nuevo.',
+  // RF-17 · could not verify: one sentence, as the person's fix is the same
+  FILE_NOT_UPLOADED: () => couldNotVerify,
+  FILE_KEY_MISMATCH: () => couldNotVerify,
+  FILE_REJECTED: () =>
+    'No pudimos verificar el archivo. Elige otro e inténtalo de nuevo.',
+  FILE_NOT_FOUND: () => 'Este caso ya no tiene ningún archivo.',
 
   NETWORK_ERROR: () =>
     'No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.',
   INTERNAL_ERROR: () => 'Algo falló en el servidor. Inténtalo de nuevo.',
 }
 
-// A code with no sentence yet still shows something honest — without blaming the server
-// for what may have been the request
-const fallback = () => 'Algo salió mal. Inténtalo de nuevo.'
+// The label of the code shown under an operation error's message (mockup screen 24)
+export const CODE_LABEL = 'Código de error'
+
+// A code with no sentence of its own: the five only a bug in this application can trigger
+// (requirements, RF-19). Trying again would fail the same way, so it asks for the code to be
+// passed on instead — and does not blame the server for what may have been the request.
+const fallback = () =>
+  'Algo salió mal. Si vuelve a pasar, avisa con este código.'
 
 export function message(code: string, params: Params = {}): string {
   return (messages[code] ?? fallback)(params)

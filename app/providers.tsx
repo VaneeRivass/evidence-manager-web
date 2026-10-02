@@ -27,7 +27,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
         queryCache: new QueryCache({ onError: toLoginOn401 }),
         mutationCache: new MutationCache({ onError: toLoginOn401 }),
         defaultOptions: {
+          // RF-19 · with the browser offline, a request is still sent, fails at once and
+          // shows NETWORK_ERROR. TanStack's default pauses it until the connection returns:
+          // an upload would sit at 0 % with nothing said.
+          mutations: { networkMode: 'always' },
           queries: {
+            networkMode: 'always',
             // An answer from the API — 400, 401, 404 — is the same the second time, so it
             // is shown at once. Only a request that never got an answer is tried once more.
             retry: (failures, error) =>

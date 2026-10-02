@@ -123,7 +123,13 @@ others: showing *Open 3 · Closed 1* would take three requests on every load. Un
 the number of cases in view.
 
 **With a filter, the empty state names it**: *You have no closed cases*. Without one, it
-offers to create the first case; the list's header always carries **New case**.
+offers to create the first case, and that is the only button: the list's header carries
+**New case** in every other state — two buttons doing the same would compete (mockup
+screen 5).
+
+**On a phone the table keeps what decides a click**: the case, its status and its file as an
+icon. The date, the file's name and its size appear from 640 px up (mockup screen 20). One
+table for every width, rather than a second card layout to keep in step with it.
 
 **More than 100 cases:** the API answers at most 100, newest first, and `total` counts all of
 them. When `total` is larger, a line says so. Pagination controls are out of scope (known
@@ -149,8 +155,8 @@ its hashing algorithm. The title shows its count, as in the mockup: *28 / 120*.
 
 **Deleting** asks first (`RF-20`, screen 16) and returns to the list.
 
-**The case page** (`/cases/[id]`) shows the case, with its actions. The evidence panel beside
-it arrives with the upload (`RF-17`). A case that does not exist, belongs to someone else or
+**The case page** (`/cases/[id]`) shows the case, with its actions, and beside it the
+evidence panel (`RF-17`). A case that does not exist, belongs to someone else or
 has a malformed address shows the same screen — *No encontramos este caso*, inside the
 private layout. Telling a stranger that a case exists but is not theirs is already telling
 them something. A request that gets no answer shows the error state with a retry button, as
@@ -158,6 +164,12 @@ the list does.
 
 **After any change, every list refreshes itself**: the mutation invalidates the list's
 query key, whatever its filters. Nothing is refreshed by hand.
+
+**After a failed change, the case is asked for again**, because it may have changed under the
+person — another window attached a file (`FILE_ALREADY_ATTACHED`) or deleted the case
+(`CASE_NOT_FOUND`). The page then shows what is true: the file attached, or *No encontramos
+este caso* — instead of keeping buttons that fail the same way. A refetch that gets no answer
+keeps the case on screen.
 
 **Success notices** only where the result is not on screen: deleting, which leaves the case.
 Created, edited, closed or reopened, the change is already visible where the person is
@@ -196,10 +208,33 @@ Client-side validation is **for the honest user**: instant feedback, nothing upl
 will be rejected. The server validation is for everyone else and cannot be skipped
 (`RNF-04`).
 
+**The limits are copied from the API**, as the Zod rules are: PDF, JPG or PNG, up to 5 MB —
+the values of the API's `.env.example`, and the ones the mockup shows. The API makes them
+configurable per environment (`RF-10`), and the browser cannot ask for them before a
+request. So if an environment ever differs, the browser's check is the one that is off, and
+the API's answer still reaches the person: its `FILE_TYPE_NOT_ALLOWED` or `FILE_TOO_LARGE`
+becomes a notice like any other operation error. A rejected file renders next to the drop
+area, naming the file — a validation error, not a notice (`RF-18`, mockup screen 12).
+
 If any step fails, the notice says **what went wrong in the person's terms**, not which
 step: the upload could not start, it was interrupted, or the file could not be verified.
 Each has its own message because the fix differs — retry, check the connection, or pick
 another file — but none of them mentions links or confirmations.
+
+| What went wrong | Codes | The person reads |
+|---|---|---|
+| Could not start | `NETWORK_ERROR`, `INTERNAL_ERROR`, `FILE_ALREADY_ATTACHED`, and the type and size codes above | The code's own message: retry, or why this file or case cannot take it |
+| Interrupted | `UPLOAD_FAILED` | The upload was cut: check the connection and try again |
+| Could not verify | `FILE_NOT_UPLOADED`, `FILE_KEY_MISMATCH`, `FILE_REJECTED` | The file could not be verified: try again, or pick another |
+
+The chosen file stays on screen after a failure, so pressing **Attach** again is the retry;
+as after any failed change, the case is asked for again first (`RF-16`). The notice belongs to
+the upload, not to the panel: it still appears if the person leaves the page while the file
+travels.
+
+**Downloading** asks the API for a fresh link on every click (`RF-12`) and hands it to the
+browser. The link is signed as an attachment, so the browser saves the file and the page
+stays where it is; the person never sees the link or its 60 seconds.
 
 ### RF-18 and RF-19 · Two kinds of error, two placements
 
@@ -225,6 +260,31 @@ notice. For those, this application assigns its own, in `lib/api.ts`:
 
 A `500` from the API is **not** one of these: it arrives in RFC 9457 with its own code
 (`INTERNAL_ERROR`) and is shown as is.
+
+**With the browser offline, a request still goes out and fails.** TanStack Query's default
+is to pause it until the connection returns, with nothing on screen: an upload would sit at
+0 % and a save would never answer. Every query and mutation uses `networkMode: 'always'`, so
+the person reads `NETWORK_ERROR` at once — the same as when the API itself is down.
+
+**Every code the API emits has a sentence, except five that only a bug here can trigger**:
+
+| Code | Reached only if this application |
+|---|---|
+| `UNREADABLE_BODY` | sent a body that is not JSON — axios always serialises it |
+| `PAYLOAD_TOO_LARGE` | sent a body over the API's limit — the longest field is 2,000 characters |
+| `ROUTE_NOT_FOUND` | called a route that does not exist |
+| `UNKNOWN_FIELD` | sent a field the API does not know |
+| `NOTHING_TO_CHANGE` | sent an empty edit — **Save** stays disabled until something changes |
+
+They share the fallback sentence, *Algo salió mal. Si vuelve a pasar, avisa con este código*,
+with the code under it. A sentence of their own would be code for a case that exists only if
+this application is broken; and trying again would fail the same way, so the fallback asks
+for the code to be passed on instead. Mockup screen 23 maps every code to where it shows.
+
+**The code is secondary on screen**: small, under the message, labelled *Código de error*
+(mockup screen 24). It is there to ask for help with; the message and the retry lead. The
+response itself is visible to anyone with the browser's developer tools, which is why the
+API sends only the code, its parameters and a `requestId` — the details stay in its log.
 
 ---
 

@@ -33,7 +33,7 @@ export function useCases(filters: CaseFilters) {
 
 // The id comes from the address, which anyone can type: encoded, `/cases/..%2Fauth%2Fme`
 // stays one path segment the API rejects as malformed, instead of becoming another route
-const casePath = (id: string) => `/cases/${encodeURIComponent(id)}`
+export const casePath = (id: string) => `/cases/${encodeURIComponent(id)}`
 
 // RF-07 · one case. Its own key, not under ['cases']: invalidating the lists does not throw
 // away the case being looked at
@@ -48,8 +48,15 @@ export function useCase(id: string) {
 // all their keys. On creating, the list is still on screen and asks again at once — so the
 // new case is already there on the way back. The case takes the API's answer, so it shows
 // at once; the case page may still ask for it once more, as data is stale from the start.
-function useCaseMutation<Variables>(
+// After a failed change the case may have changed under the person — another window
+// attached a file, or deleted the case — so the case page asks for it again and shows what
+// is true: a 404 turns it into «No encontramos este caso» (RF-16). Only an open page
+// refetches; on NETWORK_ERROR it keeps the case it has.
+// `onError` is for what must happen even if the screen is gone by then: a callback given to
+// `mutate()` is dropped once its component unmounts, one given here is not.
+export function useCaseMutation<Variables>(
   mutationFn: (variables: Variables) => Promise<Case>,
+  options: { onError?: (error: unknown) => void } = {},
 ) {
   const queryClient = useQueryClient()
 
@@ -58,6 +65,10 @@ function useCaseMutation<Variables>(
     onSuccess: (item) => {
       queryClient.setQueryData(['case', item.id], item)
       queryClient.invalidateQueries({ queryKey: ['cases'] })
+    },
+    onError: (error) => {
+      queryClient.invalidateQueries({ queryKey: ['case'] })
+      options.onError?.(error)
     },
   })
 }
@@ -79,6 +90,20 @@ export const useCaseStatus = (id: string) =>
       (await api.patch<Case>(casePath(id), { status })).data,
   )
 
+// RF-12 · a fresh link on every click, handed to the browser at once. It is signed as an
+// attachment, so the browser saves the file and the page stays; the person never sees the
+// link, nor that it lasts 60 seconds.
+export const useDownloadFile = (id: string) =>
+  useMutation({
+    mutationFn: async () =>
+      (
+        await api.get<{ downloadUrl: string }>(
+          `${casePath(id)}/file/download-url`,
+        )
+      ).data,
+    onSuccess: ({ downloadUrl }) => window.location.assign(downloadUrl),
+  })
+
 // RF-09 · the lists refresh. The case's own entry is marked stale, not removed: removed
 // while its page is still open, the page would ask for it again — and get a 404 — before
 // the move to the list completes. Stale, it is asked for only if someone returns to it.
@@ -94,5 +119,7 @@ export function useDeleteCase(id: string) {
       })
       queryClient.invalidateQueries({ queryKey: ['cases'] })
     },
+    // As for every failed change (useCaseMutation): deleted elsewhere, the page shows so
+    onError: () => queryClient.invalidateQueries({ queryKey: ['case', id] }),
   })
 }

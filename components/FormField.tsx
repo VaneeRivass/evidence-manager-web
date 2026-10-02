@@ -38,15 +38,22 @@ export function FormField({
         {aside}
       </div>
       {children}
-      {error && (
-        <p
-          id={`${id}-error`}
-          className="flex items-center gap-1.5 text-[12.5px] text-destructive"
-        >
-          <CircleAlert className="size-3.5 shrink-0" />
-          {error}
-        </p>
-      )}
+      <FieldError id={id} error={error} />
     </div>
+  )
+}
+
+// RF-18 · the message under a field, with the id ariaFor points at. On its own for a field
+// that is not a text input: the evidence's drop area.
+export function FieldError({ id, error }: { id: string; error?: string }) {
+  if (!error) return null
+  return (
+    <p
+      id={`${id}-error`}
+      className="flex items-center gap-1.5 text-[12.5px] wrap-anywhere text-destructive"
+    >
+      <CircleAlert className="size-3.5 shrink-0" />
+      {error}
+    </p>
   )
 }
