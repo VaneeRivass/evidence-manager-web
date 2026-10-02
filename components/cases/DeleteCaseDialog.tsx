@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { type Case, useDeleteCase } from '@/hooks/useCases'
 import { formatSize } from '@/lib/format'
-import { notifyError, notifySuccess } from '@/lib/notify'
+import { notifySuccess } from '@/lib/notify'
 import { FileIcon, StatusPill } from './CaseBadges'
 
 // RF-20 · mockup screen 16. Names what is lost — the case, by its own title and
@@ -31,6 +31,7 @@ export function DeleteCaseDialog({
   const remove = useDeleteCase(item.id)
   const hasFile = item.fileName !== null
 
+  // On failure the dialog stays open: pressing Eliminar again is the retry
   const confirm = () =>
     remove.mutate(undefined, {
       onSuccess: () => {
@@ -38,8 +39,6 @@ export function DeleteCaseDialog({
         notifySuccess('Caso eliminado')
         router.push('/cases')
       },
-      // The dialog stays open, so the person can try again or cancel
-      onError: notifyError,
     })
 
   return (

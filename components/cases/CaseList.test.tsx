@@ -1,11 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Case } from '@/hooks/useCases'
 import { api, ApiError } from '@/lib/api'
 import { CaseList } from './CaseList'
 
-// RF-15 · the list in its three states. The API client is substituted: what is under test
-// is what the screen shows for each answer, not the network.
+// RF-15 · the list in its three states, and with cases. The API client is substituted:
+// what is under test is what the screen shows for each answer, not the network.
 vi.mock('@/lib/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api')>()
   return { ...actual, api: { get: vi.fn() } }
@@ -56,6 +57,36 @@ describe('CaseList', () => {
       await screen.findByText('Todavía no tienes casos'),
     ).toBeInTheDocument()
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+
+  it('shows each case in the table, with how many there are', async () => {
+    const item = {
+      description: 'Descripción',
+      status: 'OPEN',
+      fileName: null,
+      fileSize: null,
+      fileType: null,
+      createdAt: '2026-09-24T10:00:00.000Z',
+      updatedAt: '2026-09-24T10:00:00.000Z',
+    } satisfies Omit<Case, 'id' | 'title'>
+    get.mockResolvedValue({
+      data: {
+        items: [
+          { ...item, id: '1', title: 'Cargo duplicado en la tarjeta' },
+          { ...item, id: '2', title: 'Robo de bicicleta', status: 'CLOSED' },
+        ],
+        total: 2,
+      },
+    })
+
+    renderList()
+
+    expect(await screen.findByRole('table')).toBeInTheDocument()
+    expect(
+      screen.getByText('Cargo duplicado en la tarjeta'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Robo de bicicleta')).toBeInTheDocument()
+    expect(screen.getByText('2 casos')).toBeInTheDocument()
   })
 
   it('shows the error code and asks again on retry', async () => {

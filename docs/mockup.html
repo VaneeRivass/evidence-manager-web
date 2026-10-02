@@ -197,6 +197,10 @@ body { background: var(--page-bg); color: var(--page-ink); font-family: var(--fo
 .toast .ti svg { width: 13px; height: 13px; stroke: #fff; }
 .toast b { font-size: 13.5px; }
 .toast p { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; }
+/* Line icons, no filled circle: a green check for success, a red ! for errors (screen 25) */
+.toast .ti.line svg { width: 20px; height: 20px; stroke: currentColor; }
+.toast .ti.ok { color: var(--teal-ink); }
+.toast .ti.err { color: var(--red); }
 .toast .x { color: #9aa0bb; font-size: 16px; line-height: 1; }
 .toast .tact { grid-column: 2 / span 2; display: flex; gap: 8px; align-items: center; margin-top: 6px; }
 .stack-demo { min-height: 330px; }
@@ -260,6 +264,9 @@ body { background: var(--page-bg); color: var(--page-ink); font-family: var(--fo
   <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
   <symbol id="i-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-triangle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-circle-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></symbol>
   <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M12 11v5M9.5 13.5h5"/></symbol>
   <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1-.5-8A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9H7z"/><path d="M4 4l16 16"/></symbol>
@@ -279,7 +286,7 @@ body { background: var(--page-bg); color: var(--page-ink); font-family: var(--fo
       <a href="#v-new">7 · Nuevo caso</a><a href="#v-detail-empty">8 · Detalle sin evidencia</a><a href="#v-chosen">9 · Archivo elegido</a><a href="#v-uploading">10 · Subiendo</a><a href="#v-finishing">11 · Terminando</a>
       <a href="#v-rejected">12 · Archivo rechazado</a><a href="#v-detail-file">13 · Detalle con evidencia</a><a href="#v-closed">14 · Caso cerrado</a>
       <a href="#v-edit">15 · Editar</a><a href="#v-delete">16 · Eliminar</a><a href="#v-toasts">17 · Avisos</a>
-      <a href="#v-bad-credentials">18 · Credenciales incorrectas</a><a href="#v-not-found">19 · No encontrada</a><a href="#v-mobile-list">20 · Lista en el móvil</a><a href="#v-case-not-found">21 · Caso no encontrado</a><a href="#v-case-error">22 · Error al cargar el caso</a><a href="#v-error-map">23 · Mapa de errores</a><a href="#v-error-code">24 · Código de error</a>
+      <a href="#v-bad-credentials">18 · Credenciales incorrectas</a><a href="#v-not-found">19 · No encontrada</a><a href="#v-mobile-list">20 · Lista en el móvil</a><a href="#v-case-not-found">21 · Caso no encontrado</a><a href="#v-case-error">22 · Error al cargar el caso</a><a href="#v-error-map">23 · Mapa de errores</a><a href="#v-error-code">24 · Código de error</a><a href="#v-error-icon">25 · Icono del error</a>
     </nav>
   </header>
 
@@ -663,14 +670,14 @@ body { background: var(--page-bg); color: var(--page-ink); font-family: var(--fo
   <!-- 15 TOASTS -->
   <section class="view" id="v-toasts">
     <div class="view-head"><h2>17 · Avisos flotantes</h2><span class="rf">RF-19</span></div>
-    <p class="view-note">Los de éxito se cierran solos a los pocos segundos. Los de error se quedan hasta que alguien los cierra, llevan el código y, si la acción se puede repetir, un botón para reintentar.</p>
+    <p class="view-note">Un solo aspecto para todos: el icono de línea en su color (pantalla 25), el mensaje en negrita y, en los de error, el código como dato secundario. Los de éxito se cierran solos a los pocos segundos; los de error, a los diez (con el ratón encima, la cuenta se pausa), o antes con la ×. El mismo error nunca sale dos veces a la vez: el nuevo reemplaza al que tiene su código. Ningún aviso lleva <b>Reintentar</b>: después del fallo, el botón de la acción sigue en pantalla —<b>Cerrar caso</b>, <b>Descargar</b>, <b>Guardar</b>, <b>Adjuntar</b>— y volver a pulsarlo es el reintento. Un segundo botón en la esquina haría lo mismo, más lejos. Reintentar es un botón solo en las pantallas de error (6 y 22), donde el error ocupa la página entera.</p>
     <div class="frame"><div class="app stack-demo">
       <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span></div></div>
       <div class="main"><div class="panel" style="height:220px"></div></div>
       <div class="toasts">
-        <div class="toast"><span class="ti" style="background:var(--teal)"><svg><use href="#i-check"/></svg></span><div><b>Evidencia adjuntada</b><p>denuncia-policia.pdf ya está en el caso.</p></div><span class="x">×</span></div>
-        <div class="toast"><span class="ti" style="background:var(--red)"><svg><use href="#i-alert"/></svg></span><div><b>Se interrumpió la subida</b><p>Se perdió la conexión mientras se enviaba denuncia-policia.pdf.</p></div><span class="x">×</span><div class="tact"><span class="errcode">Código de error: <b>UPLOAD_FAILED</b></span><span class="btn btn-outline" style="padding:6px 14px"><svg><use href="#i-retry"/></svg>Reintentar</span></div></div>
-        <div class="toast"><span class="ti" style="background:var(--red)"><svg><use href="#i-alert"/></svg></span><div><b>No pudimos verificar el archivo</b><p>El servidor lo rechazó al revisarlo. Prueba con otro archivo.</p></div><span class="x">×</span><div class="tact"><span class="errcode">Código de error: <b>FILE_REJECTED</b></span></div></div>
+        <div class="toast"><span class="ti line ok"><svg><use href="#i-circle-check"/></svg></span><div><b>Caso eliminado</b></div><span class="x">×</span></div>
+        <div class="toast"><span class="ti line err"><svg><use href="#i-alert"/></svg></span><div><b>No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.</b></div><span class="x">×</span><div class="tact"><span class="errcode">Código de error: <b>NETWORK_ERROR</b></span></div></div>
+        <div class="toast"><span class="ti line err"><svg><use href="#i-alert"/></svg></span><div><b>Este caso ya no existe. Puede que se haya eliminado.</b></div><span class="x">×</span><div class="tact"><span class="errcode">Código de error: <b>CASE_NOT_FOUND</b></span></div></div>
       </div>
     </div></div>
   </section>
@@ -811,11 +818,11 @@ body { background: var(--page-bg); color: var(--page-ink); font-family: var(--fo
           <tr class="grp"><td colspan="4">Acciones sobre el caso — aviso flotante (pantalla 17), salvo los errores de campo</td></tr>
           <tr><td><span class="code">TOO_SHORT</span><br><span class="code">TOO_LONG</span><br><span class="code">INVALID_FORMAT</span><br><span class="code">INVALID_TYPE</span></td><td>Al editar: un campo no cumple la regla (casi siempre lo detecta antes el navegador)</td><td>Debajo del campo (pantallas 2 y 15)</td><td>Este campo es obligatorio. · Máximo 120 caracteres. · …</td></tr>
           <tr><td><span class="code">CASE_NOT_FOUND</span></td><td>Editar, cerrar o eliminar un caso que otra ventana u otro dispositivo ya borró</td><td>Aviso, y la pantalla pasa a la 21</td><td>Este caso ya no existe. Puede que se haya eliminado.</td></tr>
-          <tr><td><span class="code">NETWORK_ERROR</span><br><span class="code">INTERNAL_ERROR</span></td><td>Se cae la conexión o el servidor a mitad de una acción</td><td>Aviso; el caso sigue en pantalla</td><td>Los mismos textos de arriba</td></tr>
+          <tr><td><span class="code">NETWORK_ERROR</span><br><span class="code">INTERNAL_ERROR</span></td><td>Se cae la conexión o el servidor a mitad de una acción</td><td>Aviso; el caso sigue en pantalla y su botón reintenta</td><td>Los mismos textos de arriba</td></tr>
           <tr class="grp"><td colspan="4">Evidencia — subir y descargar</td></tr>
           <tr><td><span class="code">FILE_TYPE_NOT_ALLOWED</span><br><span class="code">FILE_TOO_LARGE</span></td><td>Tipo o tamaño fuera del límite</td><td><b>Navegador:</b> debajo de la zona (pantalla 12). <b>API</b>, si su entorno tuviera otros límites: aviso</td><td>«video.mp4» no se puede adjuntar: solo se admiten PDF, JPG o PNG. · «escaneo.pdf» pesa 8,2 MB y el máximo es 5 MB.</td></tr>
           <tr><td><span class="code">FILE_ALREADY_ATTACHED</span></td><td>Otra ventana u otro dispositivo adjuntó un archivo antes</td><td>Aviso</td><td>Este caso ya tiene un archivo, y la evidencia no se puede cambiar.</td></tr>
-          <tr><td><span class="code">UPLOAD_FAILED</span></td><td>Se corta la subida a Cloudflare (código propio del front: R2 no habla nuestro formato)</td><td>Aviso; el archivo sigue elegido para reintentar</td><td>La subida se interrumpió. Revisa tu conexión e inténtalo de nuevo.</td></tr>
+          <tr><td><span class="code">UPLOAD_FAILED</span></td><td>Se corta la subida a Cloudflare (código propio del front: R2 no habla nuestro formato)</td><td>Aviso sin botón: el archivo sigue elegido y <b>Adjuntar</b> lo reintenta</td><td>La subida se interrumpió. Revisa tu conexión e inténtalo de nuevo.</td></tr>
           <tr><td><span class="code">FILE_NOT_UPLOADED</span><br><span class="code">FILE_KEY_MISMATCH</span></td><td>El API no encuentra el archivo subido, o la clave no es de este caso</td><td>Aviso</td><td>No pudimos verificar el archivo. Inténtalo de nuevo.</td></tr>
           <tr><td><span class="code">FILE_REJECTED</span></td><td>El archivo real no cumple (tamaño o tipo de verdad)</td><td>Aviso</td><td>No pudimos verificar el archivo. Elige otro e inténtalo de nuevo.</td></tr>
           <tr><td><span class="code">FILE_NOT_FOUND</span></td><td>Descargar de un caso que ya no tiene archivo</td><td>Aviso</td><td>Este caso ya no tiene ningún archivo.</td></tr>
@@ -854,12 +861,43 @@ body { background: var(--page-bg); color: var(--page-ink); font-family: var(--fo
             <span class="errcode">Código de error: <b>NETWORK_ERROR</b></span>
             <span class="btn btn-outline" style="margin-top:8px"><svg><use href="#i-retry"/></svg>Reintentar</span>
           </div>
-          <div class="toast solo"><span class="ti" style="background:var(--red)"><svg><use href="#i-alert"/></svg></span><div><b>Este caso ya no existe. Puede que se haya eliminado.</b><p style="margin-top:4px"><span class="errcode">Código de error: <b>CASE_NOT_FOUND</b></span></p></div><span class="x">×</span></div>
+          <div class="toast solo"><span class="ti line err"><svg><use href="#i-alert"/></svg></span><div><b>Este caso ya no existe. Puede que se haya eliminado.</b><p style="margin-top:4px"><span class="errcode">Código de error: <b>CASE_NOT_FOUND</b></span></p></div><span class="x">×</span></div>
         </div></div></div>
       </div>
     </div>
   </section>
 
+  <!-- 25 ERROR ICON -->
+  <section class="view" id="v-error-icon">
+    <div class="view-head"><h2>25 · Icono del aviso de error</h2><span class="rf">RF-19</span></div>
+    <p class="view-note">El <b>!</b> de antes trae su propio anillo; dentro del círculo rojo quedan dos círculos y una raya, y se lee como el botón de encendido. Cada opción va junto al aviso de éxito, porque los dos se ven a la vez. <b>A</b>: una ✕ en el círculo rojo, pareja exacta del ✓ verde. <b>B</b>: el triángulo de alerta, sin círculo. <b>C</b>: el triángulo rojo sobre un fondo rosa suave, como el icono del diálogo de eliminar (pantalla 16). <b>Elegida: B, con un cambio</b>: el triángulo dice «cuidado, algo puede pasar» y aquí algo ya falló, así que va el mismo <b>!</b> en círculo que el aviso de la pantalla 16, solo línea y en rojo; sin el fondo relleno ya no parece el botón de encendido. El éxito, igual: un círculo con ✓ en verde oscuro (<span class="code">--teal-ink</span>): el verde claro sobre blanco no llega al contraste 3:1 que pide un icono.</p>
+    <div class="compare">
+      <div class="phone-col"><span class="option-tag">Antes</span>
+        <div class="frame"><div class="app" style="min-width:0"><div class="main" style="gap:10px">
+          <div class="toast solo"><span class="ti" style="background:var(--teal)"><svg><use href="#i-check"/></svg></span><div><b>Caso eliminado</b></div><span class="x">×</span></div>
+          <div class="toast solo"><span class="ti" style="background:var(--red)"><svg><use href="#i-alert"/></svg></span><div><b>Este caso ya no existe. Puede que se haya eliminado.</b><p style="margin-top:4px"><span class="errcode">Código de error: <b>CASE_NOT_FOUND</b></span></p></div><span class="x">×</span></div>
+        </div></div></div>
+      </div>
+      <div class="phone-col"><span class="option-tag">Opción A · ✕ en círculo</span>
+        <div class="frame"><div class="app" style="min-width:0"><div class="main" style="gap:10px">
+          <div class="toast solo"><span class="ti" style="background:var(--teal)"><svg><use href="#i-check"/></svg></span><div><b>Caso eliminado</b></div><span class="x">×</span></div>
+          <div class="toast solo"><span class="ti" style="background:var(--red)"><svg><use href="#i-x"/></svg></span><div><b>Este caso ya no existe. Puede que se haya eliminado.</b><p style="margin-top:4px"><span class="errcode">Código de error: <b>CASE_NOT_FOUND</b></span></p></div><span class="x">×</span></div>
+        </div></div></div>
+      </div>
+      <div class="phone-col"><span class="option-tag">Opción B · solo línea (elegida)</span>
+        <div class="frame"><div class="app" style="min-width:0"><div class="main" style="gap:10px">
+          <div class="toast solo"><span class="ti line ok"><svg><use href="#i-circle-check"/></svg></span><div><b>Caso eliminado</b></div><span class="x">×</span></div>
+          <div class="toast solo"><span class="ti line err"><svg><use href="#i-alert"/></svg></span><div><b>Este caso ya no existe. Puede que se haya eliminado.</b><p style="margin-top:4px"><span class="errcode">Código de error: <b>CASE_NOT_FOUND</b></span></p></div><span class="x">×</span></div>
+        </div></div></div>
+      </div>
+      <div class="phone-col"><span class="option-tag">Opción C · triángulo sobre rosa</span>
+        <div class="frame"><div class="app" style="min-width:0"><div class="main" style="gap:10px">
+          <div class="toast solo"><span class="ti" style="background:var(--teal)"><svg><use href="#i-check"/></svg></span><div><b>Caso eliminado</b></div><span class="x">×</span></div>
+          <div class="toast solo"><span class="ti" style="background:var(--red-soft);color:var(--red)"><svg style="stroke:currentColor"><use href="#i-triangle"/></svg></span><div><b>Este caso ya no existe. Puede que se haya eliminado.</b><p style="margin-top:4px"><span class="errcode">Código de error: <b>CASE_NOT_FOUND</b></span></p></div><span class="x">×</span></div>
+        </div></div></div>
+      </div>
+    </div>
+  </section>
 </div>
 </body>
 </html>

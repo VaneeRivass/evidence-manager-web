@@ -22,7 +22,6 @@ import {
 } from '@/lib/files'
 import { formatSize } from '@/lib/format'
 import { message } from '@/lib/messages.es'
-import { notifyError } from '@/lib/notify'
 import { cn } from '@/lib/utils'
 import { FileIcon } from './CaseBadges'
 
@@ -252,10 +251,7 @@ function AttachedFile({ item }: { item: Case }) {
             Verificada
           </span>
         </FileSummary>
-        <Button
-          onClick={() => download.mutate(undefined, { onError: notifyError })}
-          disabled={download.isPending}
-        >
+        <Button onClick={() => download.mutate()} disabled={download.isPending}>
           <Download />
           Descargar
         </Button>

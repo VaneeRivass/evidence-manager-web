@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
+import { placedOnCredentialsForm } from '@/lib/formErrors'
 import type { Credentials } from '@/lib/schemas'
 import { goToLogin } from '@/lib/session'
 
@@ -7,12 +8,16 @@ import { goToLogin } from '@/lib/session'
 
 type User = { id: string; email: string }
 
+// The sign-in forms place some errors themselves (showAuthError.ts); any other is a notice
+const credentialErrors = { placedByForm: placedOnCredentialsForm }
+
 // The login already answers who signed in: it seeds the session query, so the top bar
 // does not ask /auth/me again right after
 export function useLogin() {
   const queryClient = useQueryClient()
 
   return useMutation({
+    meta: credentialErrors,
     mutationFn: async (credentials: Credentials) =>
       (await api.post<User>('/auth/login', credentials)).data,
     onSuccess: (user) => queryClient.setQueryData(['session'], user),
@@ -22,6 +27,7 @@ export function useLogin() {
 // RF-13 · registering does not sign the person in: they sign in themselves
 export function useRegister() {
   return useMutation({
+    meta: credentialErrors,
     mutationFn: async (credentials: Credentials) => {
       await api.post('/auth/register', credentials)
     },

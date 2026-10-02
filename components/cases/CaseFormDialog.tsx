@@ -22,8 +22,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { type Case, useSaveCase } from '@/hooks/useCases'
 import { toApiError } from '@/lib/api'
 import { placeFieldErrors } from '@/lib/formErrors'
-import { notifyError } from '@/lib/notify'
-import { type CaseInput, caseSchema, TITLE_MAX } from '@/lib/schemas'
+import {
+  CASE_FIELDS,
+  type CaseInput,
+  caseSchema,
+  TITLE_MAX,
+} from '@/lib/schemas'
 import { cn } from '@/lib/utils'
 
 // RF-16 · one dialog for creating (mockup screen 7) and editing (screen 15): without a case
@@ -78,8 +82,9 @@ function CaseForm({ item, onDone }: { item?: Case; onDone: () => void }) {
     control,
     name: ['title', 'description'],
   })
-  // Counted as the rule counts it: trimmed, in .length (lib/schemas.ts)
-  const titleLength = title.trim().length
+  // Counted as the rule counts it: trimmed, in characters — an emoji is 1, though its
+  // .length is 2 (lib/schemas.ts)
+  const titleLength = [...title.trim()].length
 
   // RF-16 · compared as they would be sent — trimmed — so an added space is not a change.
   // An unchanged edit would still move the case to the top of the list.
@@ -95,11 +100,9 @@ function CaseForm({ item, onDone }: { item?: Case; onDone: () => void }) {
         // RF-16 · creating opens the new case, where the evidence is attached
         if (!item) router.push(`/cases/${saved.id}`)
       },
+      // Any other error is a notice, from the query client (providers.tsx)
       onError: (error) => {
-        const err = toApiError(error)
-        if (!placeFieldErrors(err, ['title', 'description'], form)) {
-          notifyError(err)
-        }
+        placeFieldErrors(toApiError(error), CASE_FIELDS, form)
       },
     }),
   )

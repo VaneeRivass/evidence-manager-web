@@ -8,8 +8,8 @@ import { message } from './messages.es'
 // Each limit is written once and feeds both the rule and its message, so they cannot
 // drift apart. The values are the API's (RF-01a, RF-01b).
 const EMAIL_MAX = 254
-const PASSWORD_MIN = 8
-const PASSWORD_MAX = 72
+export const PASSWORD_MIN = 8
+export const PASSWORD_MAX = 72
 
 // RF-01a · trimmed, up to 254 characters, lowercase
 const email = z
@@ -46,9 +46,13 @@ export const loginSchema = z.object({
 
 export type Credentials = z.infer<typeof loginSchema>
 
+// The form's fields, from the schema itself: where an API error on one of them goes (RF-18)
+export const CREDENTIAL_FIELDS = loginSchema.keyof().options
+
 // RF-05 · a case's title and description, the API's Zod rule copied: trimmed, then 1 to the
-// column's size. Zod's .max() counts .length (UTF-16 units: an emoji counts as 2), and so
-// does this — whatever the browser accepts, the API accepts too.
+// column's size. Zod 4's .max() counts characters, not .length: an emoji is 1, as in the
+// database column, though JavaScript's .length says 2 — whatever the browser accepts, the API
+// accepts too (pinned by schemas.test.ts).
 export const TITLE_MAX = 120
 export const DESCRIPTION_MAX = 2000
 
@@ -65,3 +69,5 @@ export const caseSchema = z.object({
 })
 
 export type CaseInput = z.infer<typeof caseSchema>
+
+export const CASE_FIELDS = caseSchema.keyof().options

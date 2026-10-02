@@ -6,7 +6,6 @@ import { Brand } from '@/components/Brand'
 import { SkeletonBar } from '@/components/SkeletonBar'
 import { Button } from '@/components/ui/button'
 import { useLogout, useSession } from '@/hooks/useAuth'
-import { notifyError } from '@/lib/notify'
 
 // The bar over every private page: who is signed in, and the way out (RF-04). A 401 is
 // not handled here: providers.tsx handles it for every request.
@@ -39,7 +38,7 @@ export function TopBar() {
         )}
         <Button
           variant="ghost"
-          onClick={() => logout.mutate(undefined, { onError: notifyError })}
+          onClick={() => logout.mutate()}
           disabled={logout.isPending}
           className="text-muted-foreground"
         >

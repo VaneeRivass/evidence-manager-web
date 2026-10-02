@@ -35,6 +35,10 @@ export const toApiError = (error: unknown): ApiError =>
 export const isUnauthenticated = (error: unknown): boolean =>
   error instanceof ApiError && error.code === 'UNAUTHENTICATED'
 
+// No answer reached us: offline, or the API down. Asking again at once would fail the same way.
+export const isNetworkError = (error: unknown): boolean =>
+  error instanceof ApiError && error.code === 'NETWORK_ERROR'
+
 // The resource is not there for this person: missing, someone else's, or a malformed id
 // the API rejects before looking. One answer for all three, so a stranger cannot tell
 // that something exists (RF-16).

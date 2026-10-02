@@ -16,7 +16,6 @@ import { Button } from '@/components/ui/button'
 import { type Case, useCase, useCaseStatus } from '@/hooks/useCases'
 import { isNotFound, toApiError } from '@/lib/api'
 import { formatDate } from '@/lib/format'
-import { notifyError } from '@/lib/notify'
 import { StatusPill } from './CaseBadges'
 import { CaseFormDialog } from './CaseFormDialog'
 import { DeleteCaseDialog } from './DeleteCaseDialog'
@@ -64,8 +63,7 @@ function CaseCard({ item }: { item: Case }) {
   const open = item.status === 'OPEN'
 
   // RF-08 · closing and reopening: no confirmation, it can be undone
-  const toggleStatus = () =>
-    status.mutate(open ? 'CLOSED' : 'OPEN', { onError: notifyError })
+  const toggleStatus = () => status.mutate(open ? 'CLOSED' : 'OPEN')
 
   return (
     <>
