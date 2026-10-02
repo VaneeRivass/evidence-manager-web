@@ -16,6 +16,7 @@ architecture decisions span both:
 | `evidence-manager-api/docs/requirements.md` | The API contract: endpoints, error format (`RF-21`…`RF-23`) |
 | `evidence-manager-api/docs/adr/` | The six system decisions |
 | `docs/adr/0007-front-architecture.md` | This app's own decision: client components, no BFF |
+| `docs/mockup.html` | The mockup: every screen, numbered. «Mockup screen 12» in code and requirements means its screen 12. Open it in a browser |
 | `../docs/` | Internal working notes, in Spanish. Not published |
 
 **Do not answer from memory about requirements or decisions: read them.**

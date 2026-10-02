@@ -4,6 +4,9 @@ Interface requirements. Each one has a stable identifier used across issues, tes
 code: searching for `RF-15` in the repository returns the requirement, the issue that
 delivers it, the test that proves it and the code that implements it.
 
+The screens they cite — *mockup screen 12* — are those of [`mockup.html`](./mockup.html),
+which opens in any browser.
+
 **Requirements `RF-01`–`RF-12` and `RF-21`–`RF-23` are not repeated here.** They describe
 the API this application consumes and are defined in
 [`evidence-manager-api/docs/requirements.md`](https://github.com/VaneeRivass/evidence-manager-api/blob/main/docs/requirements.md),
