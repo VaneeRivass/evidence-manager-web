@@ -26,6 +26,7 @@ import {
   CASE_FIELDS,
   type CaseInput,
   caseSchema,
+  DESCRIPTION_MAX,
   TITLE_MAX,
 } from '@/lib/schemas'
 import { cn } from '@/lib/utils'
@@ -82,10 +83,6 @@ function CaseForm({ item, onDone }: { item?: Case; onDone: () => void }) {
     control,
     name: ['title', 'description'],
   })
-  // Counted as the rule counts it: trimmed, in characters — an emoji is 1, though its
-  // .length is 2 (lib/schemas.ts)
-  const titleLength = [...title.trim()].length
-
   // RF-16 · compared as they would be sent — trimmed — so an added space is not a change.
   // An unchanged edit would still move the case to the top of the list.
   const unchanged =
@@ -124,16 +121,7 @@ function CaseForm({ item, onDone }: { item?: Case; onDone: () => void }) {
         id="title"
         label="Título"
         error={errors.title?.message}
-        aside={
-          <span
-            className={cn(
-              'text-xs tabular-nums text-muted-foreground',
-              titleLength > TITLE_MAX && 'text-destructive',
-            )}
-          >
-            {titleLength} / {TITLE_MAX}
-          </span>
-        }
+        aside={<CharCount value={title} max={TITLE_MAX} />}
       >
         <Input
           id="title"
@@ -148,6 +136,7 @@ function CaseForm({ item, onDone }: { item?: Case; onDone: () => void }) {
         id="description"
         label="Descripción"
         error={errors.description?.message}
+        aside={<CharCount value={description} max={DESCRIPTION_MAX} />}
       >
         <Textarea
           id="description"
@@ -170,5 +159,21 @@ function CaseForm({ item, onDone }: { item?: Case; onDone: () => void }) {
         </Button>
       </div>
     </form>
+  )
+}
+
+// RF-16 · how much is written, counted as the rule counts it: trimmed, in characters — an
+// emoji is 1, though its .length is 2 (lib/schemas.ts). Red past the limit.
+function CharCount({ value, max }: { value: string; max: number }) {
+  const count = [...value.trim()].length
+  return (
+    <span
+      className={cn(
+        'text-xs tabular-nums text-muted-foreground',
+        count > max && 'text-destructive',
+      )}
+    >
+      {count} / {max}
+    </span>
   )
 }

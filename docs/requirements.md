@@ -150,7 +150,8 @@ JavaScript `.length` is 2. This application uses the same Zod rule, so whatever 
 accepts the API accepts too, and the title's counter counts the same way. An emoji drawn
 from several pieces counts each one: 🚶‍♂️ is a person, a joiner, a sign and a style mark — 4.
 Not bytes: only the password is measured in bytes, because of
-its hashing algorithm. The title shows its count, as in the mockup: *28 / 120*.
+its hashing algorithm. The title and the description show their count, as in the mockup —
+*28 / 120*, *124 / 2000* — red past the limit, so nobody writes towards a limit blind.
 
 **Closing and reopening** is one button on the case, whose label follows the status
 (screen 14). No confirmation: it can be undone.
@@ -185,7 +186,11 @@ file is shown with its name and size and a warning that it cannot be changed lat
 press **Attach**, and a single progress bar runs until the file is attached. Nothing is
 sent until they press it — evidence is never replaced (`RF-10`), so choosing the wrong
 file must be cheap to undo. The calls below happen inside `useFileUpload` and never
-appear on screen.
+appear on screen. The file's name takes up to two lines and the full name
+shows on pointing at it (mockup screen 13): the evidence sits in the narrow column, beside
+**Descargar**, and one line would cut most names to their first words. For the same
+reason the card lays out by its own width, not the screen's: where it is narrow,
+**Descargar** goes under the name.
 
 ```
 1. The person drops or picks a file
