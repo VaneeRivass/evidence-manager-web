@@ -7,3 +7,6 @@ components/ui/
 
 # Documentation is written by hand, not formatted
 *.md
+
+# The mockup, written by hand
+docs/mockup.html

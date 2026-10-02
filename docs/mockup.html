@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vistas del gestor de evidencias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: an index of views, then each view as a labelled frame holding a light-only mock of the real screen */
+:root {
+  /* page chrome */
+  --page-bg: #eef0f5; --page-ink: #161c2d; --page-muted: #5b6386; --page-line: #d9dde8; --page-chip: #ffffff;
+  /* app palette, taken from kiggu.io */
+  --blue: #4f68f1; --blue-soft: #eceffe; --blue-ink: #2f45c4;
+  --teal: #00bb9c; --teal-soft: #e0f6f2; --teal-ink: #007a66;
+  --navy: #161c2d; --slate: #3e4675; --muted: #666e94; --line: #e3e6ee; --bg: #f8f9f9; --card: #ffffff;
+  --amber: #fab446; --red: #c8414b; --red-soft: #fbeced;
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --page-bg: #0f1220; --page-ink: #e8eaf3; --page-muted: #9ba2c4; --page-line: #272c44; --page-chip: #181c30; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --page-bg: #0f1220; --page-ink: #e8eaf3; --page-muted: #9ba2c4; --page-line: #272c44; --page-chip: #181c30; color-scheme: dark; }
+
+body { background: var(--page-bg); color: var(--page-ink); font-family: var(--font); line-height: 1.5; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 40px 80px; padding-inline: 20px; display: grid; gap: 40px; }
+.intro h1 { font-size: 1.9rem; margin: 0 0 8px; letter-spacing: -0.02em; text-wrap: balance; }
+.intro p { margin: 0 0 6px; color: var(--page-muted); max-width: 70ch; }
+.index { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.index a { font-size: .82rem; text-decoration: none; color: var(--page-ink); background: var(--page-chip); border: 1px solid var(--page-line); padding: 5px 12px; border-radius: 999px; }
+.index a:hover, .index a:focus-visible { border-color: var(--blue); outline: none; }
+.group-title { font-size: 1.35rem; color: var(--page-ink); margin: 16px 0 -24px; font-weight: 800; letter-spacing: -0.01em; padding-top: 20px; border-top: 1px solid var(--page-line); }
+.view { display: grid; gap: 10px; scroll-margin-top: 20px; }
+.view-head { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.view-head h2 { margin: 0; font-size: 1.1rem; }
+.rf { font-family: var(--mono); font-size: .72rem; color: var(--page-muted); border: 1px solid var(--page-line); padding: 1px 7px; border-radius: 999px; }
+.view-note { margin: 0; color: var(--page-muted); font-size: .9rem; max-width: 80ch; }
+.frame { overflow-x: auto; border-radius: 18px; border: 1px solid var(--page-line); box-shadow: 0 10px 30px rgba(22,28,45,.06); }
+
+/* ---------- app mock ---------- */
+.app { min-width: 720px; background: var(--bg); color: var(--navy); font-family: var(--font); font-size: 14px; color-scheme: light; position: relative; }
+.app * { box-sizing: border-box; }
+.topbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 28px; background: var(--card); border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.01em; }
+.mark { width: 30px; height: 30px; border-radius: 10px; background: var(--blue); display: grid; place-items: center; }
+.mark svg { width: 16px; height: 16px; stroke: #fff; }
+.who { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 13px; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--teal-soft); color: var(--teal-ink); display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+.main { padding: 28px; display: grid; gap: 20px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+.sub { color: var(--muted); margin: 2px 0 0; font-size: 13px; }
+.btn { font: inherit; font-size: 13px; font-weight: 600; border-radius: 999px; padding: 9px 18px; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; white-space: nowrap; }
+.btn svg { width: 15px; height: 15px; }
+.btn-primary { background: var(--blue); color: #fff; box-shadow: 0 6px 16px rgba(79,104,241,.28); }
+.btn-outline { background: var(--card); border-color: var(--line); color: var(--navy); }
+.btn-ghost { background: transparent; color: var(--muted); padding-inline: 10px; }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger-ghost { background: transparent; color: var(--red); border-color: #f0cfd2; }
+.btn-block { width: 100%; justify-content: center; padding: 11px 18px; }
+.tabs { display: inline-flex; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 4px; gap: 2px; }
+.tabs span { padding: 6px 14px; border-radius: 999px; font-size: 13px; color: var(--muted); font-weight: 500; }
+.tabs span.on { background: var(--navy); color: #fff; }
+.tabs b { font-weight: 600; opacity: .7; margin-left: 4px; font-size: 12px; }
+.select { background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; font-size: 13px; color: var(--slate); display: inline-flex; gap: 8px; align-items: center; }
+.select svg { width: 14px; height: 14px; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 20px; }
+.list { overflow: hidden; }
+.list table { width: 100%; border-collapse: collapse; }
+.list th { text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); padding: 12px 18px; border-bottom: 1px solid var(--line); }
+.list td { padding: 14px 18px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.list tr:last-child td { border-bottom: 0; }
+.list tr.hover td { background: #fafbff; }
+.c-title { font-weight: 600; }
+.c-desc { color: var(--muted); font-size: 12.5px; margin-top: 2px; max-width: 42ch; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.date { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.open { background: var(--blue-soft); color: var(--blue-ink); }
+.closed { background: #eef0f4; color: var(--muted); }
+.file { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
+.ficon { --c: var(--slate); width: 26px; height: 32px; border-radius: 4px; display: grid; place-items: end center; padding-bottom: 5px; font-size: 8.5px; font-weight: 800; color: #fff; letter-spacing: .03em; flex: none;
+  clip-path: polygon(0 0, 66% 0, 100% 27%, 100% 100%, 0 100%);
+  background: linear-gradient(225deg, rgba(255,255,255,.5) 0 19%, transparent 19%), var(--c); }
+.ficon.pdf { --c: var(--red); }
+.ficon.img { --c: var(--teal); }
+.file small { color: var(--muted); }
+.nofile { color: #9aa0bb; font-size: 13px; }
+.foot { display: flex; justify-content: space-between; padding: 12px 18px; color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); }
+
+/* skeleton */
+.sk { display: block; height: 12px; border-radius: 999px; background: linear-gradient(90deg, #eef0f5 0%, #f6f7fa 50%, #eef0f5 100%); background-size: 200% 100%; animation: sh 1.4s ease-in-out infinite; }
+@keyframes sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .sk { animation: none; } }
+
+/* empty / error */
+.state { padding: 56px 24px; display: grid; justify-items: center; text-align: center; gap: 10px; }
+.state .ill { width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center; margin-bottom: 6px; }
+.state .ill svg { width: 30px; height: 30px; }
+.state h3 { margin: 0; font-size: 17px; font-weight: 700; }
+.state p { margin: 0; color: var(--muted); max-width: 46ch; }
+.code { font-family: var(--mono); font-size: 11.5px; background: #f1f2f7; color: var(--slate); padding: 2px 7px; border-radius: 6px; }
+
+/* auth */
+.auth { min-height: 560px; display: grid; grid-template-columns: 1fr 1fr; }
+.auth-side { background: var(--navy); color: #fff; padding: 44px; display: flex; flex-direction: column; justify-content: space-between; gap: 28px; position: relative; overflow: hidden; }
+.auth-side .blob { position: absolute; border-radius: 50%; filter: blur(2px); will-change: transform; }
+.auth-side .b1 { width: 280px; height: 280px; background: #4f68f1; right: -90px; top: -70px; opacity: .55; animation: drift1 14s ease-in-out infinite alternate; }
+.auth-side .b2 { width: 190px; height: 190px; background: #00bb9c; left: -60px; bottom: -50px; opacity: .45; animation: drift2 17s ease-in-out infinite alternate; }
+.auth-side .b3 { width: 90px; height: 90px; background: #fab446; right: 22%; bottom: 18%; opacity: .35; animation: drift3 11s ease-in-out infinite alternate; }
+@keyframes drift1 { to { transform: translate(-40px, 30px) scale(1.08); } }
+@keyframes drift2 { to { transform: translate(35px, -25px) scale(1.12); } }
+@keyframes drift3 { to { transform: translate(-25px, -35px) scale(.9); } }
+@media (prefers-reduced-motion: reduce) { .auth-side .blob { animation: none; } }
+.auth-side > div { position: relative; }
+.auth-side h3 { font-size: 28px; line-height: 1.2; margin: 0; letter-spacing: -0.02em; max-width: 14ch; position: relative; }
+.auth-side h3 em { font-style: normal; color: #9fb0ff; }
+.auth-side p { color: #b9bfdc; margin: 12px 0 0; max-width: 34ch; position: relative; }
+.auth-side .brand { color: #fff; position: relative; }
+.auth-form { padding: 56px; display: grid; align-content: center; gap: 18px; background: var(--card); }
+.auth-form h3 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.field { display: grid; gap: 6px; }
+.field label { font-size: 13px; font-weight: 600; }
+.input { border: 1px solid var(--line); border-radius: 14px; padding: 11px 14px; font-size: 14px; background: var(--card); color: var(--navy); }
+.input.ph { color: #9aa0bb; }
+.input.err { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
+.input.focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }
+.ferr { color: var(--red); font-size: 12.5px; display: flex; gap: 6px; align-items: center; }
+.hint { color: var(--muted); font-size: 12.5px; }
+.textarea { min-height: 96px; line-height: 1.5; }
+.switch { font-size: 13px; color: var(--muted); text-align: center; }
+.switch a { color: var(--blue); font-weight: 600; text-decoration: none; }
+.counter { font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* detail */
+.crumb { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 13px; }
+.crumb a { color: var(--muted); text-decoration: none; display: inline-flex; gap: 6px; align-items: center; }
+.crumb svg { width: 14px; height: 14px; }
+.detail { display: grid; grid-template-columns: 1.45fr 1fr; gap: 20px; align-items: start; }
+.card { padding: 24px; display: grid; gap: 16px; }
+.card h4 { margin: 0; font-size: 15px; font-weight: 700; color: var(--navy); }
+.dtitle { font-size: 26px; font-weight: 800; margin: 0; letter-spacing: -0.02em; line-height: 1.2; text-wrap: balance; }
+.desc { margin: 0; color: var(--slate); line-height: 1.65; max-width: 62ch; }
+.meta { display: flex; gap: 18px; flex-wrap: wrap; color: var(--muted); font-size: 12.5px; padding-top: 14px; border-top: 1px solid var(--line); }
+.meta b { color: var(--navy); font-weight: 600; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.drop { border: 2px dashed #c9d1fb; border-radius: 18px; background: #f7f8ff; padding: 30px 20px; display: grid; justify-items: center; text-align: center; gap: 8px; }
+.drop.active { border-color: var(--blue); background: var(--blue-soft); }
+.drop.bad { border-color: #eab3b8; background: #fdf6f6; }
+.drop .ill { width: 48px; height: 48px; border-radius: 16px; background: var(--card); display: grid; place-items: center; box-shadow: 0 4px 12px rgba(79,104,241,.15); }
+.drop .ill svg { width: 22px; height: 22px; stroke: var(--blue); }
+.drop strong { font-size: 14px; }
+.drop p { margin: 0; color: var(--muted); font-size: 12.5px; }
+.drop a { color: var(--blue); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.up { display: grid; gap: 10px; border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+.up-row { display: flex; gap: 12px; align-items: center; }
+.up-name { font-weight: 600; font-size: 13.5px; }
+.up-sub { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.bar { height: 8px; background: #eef0f5; border-radius: 999px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--blue), #7d8ff6); border-radius: inherit; }
+.evid { display: flex; gap: 14px; align-items: center; border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+.evid .ficon { width: 40px; height: 50px; font-size: 10.5px; padding-bottom: 8px; border-radius: 6px; }
+.chosen { display: grid; gap: 14px; border: 1px solid #c9d1fb; background: #f7f8ff; border-radius: 18px; padding: 18px; }
+.chosen .doc { display: flex; gap: 14px; align-items: center; }
+.chosen .ficon { width: 46px; height: 58px; font-size: 11px; padding-bottom: 9px; border-radius: 6px; }
+.chosen .note { display: flex; gap: 8px; align-items: center; color: var(--slate); font-size: 12.5px; }
+.chosen .note svg { width: 15px; height: 15px; color: var(--amber); flex: none; }
+.chosen .btns { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.bar.full i { background: var(--teal); }
+.spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--teal); animation: rot .8s linear infinite; display: inline-block; vertical-align: -2px; margin-right: 6px; }
+@keyframes rot { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+.pending { font-size: .72rem; font-weight: 700; color: #8a5a00; background: #fff3dc; border: 1px solid #f5d9a3; padding: 1px 8px; border-radius: 999px; }
+.evid-body { flex: 1; min-width: 0; }
+.ok { color: var(--teal-ink); font-size: 12px; font-weight: 600; display: inline-flex; gap: 5px; align-items: center; }
+.ok svg { width: 13px; height: 13px; }
+
+/* overlay + dialog */
+.shade { position: absolute; inset: 0; background: rgba(22,28,45,.45); display: grid; place-items: center; padding: 24px; }
+.dialog { background: var(--card); border-radius: 24px; padding: 28px; width: min(460px, 100%); display: grid; gap: 16px; box-shadow: 0 30px 60px rgba(22,28,45,.25); }
+.dialog h3 { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
+.dialog p { margin: 0; color: var(--slate); }
+.dialog .lost { background: #fbf6f6; border: 1px solid #f1d9db; border-radius: 14px; padding: 12px 14px; display: grid; gap: 8px; font-size: 13px; }
+.dialog .lost div { display: flex; gap: 10px; align-items: center; }
+.dialog .warn { display: flex; gap: 8px; color: var(--red); font-size: 13px; font-weight: 600; align-items: center; }
+.dialog .btns { display: flex; justify-content: flex-end; gap: 8px; }
+.danger-ic { width: 44px; height: 44px; border-radius: 14px; background: var(--red-soft); display: grid; place-items: center; }
+.danger-ic svg { width: 22px; height: 22px; stroke: var(--red); }
+
+/* toasts */
+.toasts { position: absolute; right: 24px; bottom: 24px; display: grid; gap: 10px; width: 360px; }
+.toast { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; display: grid; grid-template-columns: 22px 1fr auto; gap: 4px 12px; box-shadow: 0 16px 40px rgba(22,28,45,.16); align-items: start; }
+.toast .ti { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; }
+.toast .ti svg { width: 13px; height: 13px; stroke: #fff; }
+.toast b { font-size: 13.5px; }
+.toast p { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; }
+.toast .x { color: #9aa0bb; font-size: 16px; line-height: 1; }
+.toast .tact { grid-column: 2 / span 2; display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+.stack-demo { min-height: 330px; }
+.option-tag { display: inline-block; font-weight: 800; font-size: 1rem; margin: 6px 0 -2px; }
+
+/* 18: a notice about the whole form, not one field */
+.form-err { display: grid; grid-template-columns: 18px 1fr; gap: 2px 10px; background: var(--red-soft); border: 1px solid #f0cfd2; border-radius: 14px; padding: 12px 14px; color: var(--red); font-size: 13px; }
+.form-err svg { width: 18px; height: 18px; stroke: var(--red); margin-top: 1px; }
+.form-err b { font-weight: 600; }
+
+/* 20: the list on a phone, two options side by side */
+.phones { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+.phone-col { display: grid; gap: 8px; }
+.phone { width: 375px; max-width: 100%; border-radius: 28px; border: 1px solid var(--page-line); overflow: hidden; box-shadow: 0 10px 30px rgba(22,28,45,.08); }
+.phone .app { min-width: 0; }
+.phone .topbar { padding: 12px 16px; }
+.phone .main { padding: 20px 16px; gap: 16px; }
+.phone .list th, .phone .list td { padding: 12px; }
+.phone .list table { table-layout: fixed; }
+.phone .list th:nth-child(2), .phone .list td:nth-child(2) { width: 96px; }
+.phone .list th:nth-child(3), .phone .list td:nth-child(3) { width: 64px; text-align: right; padding-right: 16px; }
+.phone .list td:nth-child(3) .ficon { display: inline-grid; }
+.phone .c-desc { max-width: none; }
+.phone .tabs span { padding: 6px 12px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.mcards { display: grid; gap: 10px; }
+.mcard { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; display: grid; gap: 6px; }
+.mcard .top { display: flex; justify-content: space-between; align-items: center; }
+.mcard .c-desc { max-width: none; }
+.mcard .file { margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
+
+/* 21-23: the case page's errors, and every code mapped */
+.map { font-size: 13px; }
+.map td, .map th { vertical-align: top; }
+.map td:first-child { white-space: nowrap; }
+.map .grp td { background: #f6f7fb; font-weight: 700; color: var(--slate); font-size: 12px; }
+.map .warnrow td { background: #fff8ec; }
+
+/* 24: how the error code is shown, now vs option A */
+.compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+.compare .state { padding: 36px 20px; }
+.errcode { font-size: 12px; color: var(--muted); }
+.errcode b { font-weight: 600; }
+.toast.solo { position: static; }
+
+@media (max-width: 640px) { .wrap { padding-inline: 16px; } }
+</style>
+</head>
+<body>
+
+<!-- shared icons -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-logo" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l4 4v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2z"/><path d="M9 13l2 2 4-4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 20h16"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M12 11v5M9.5 13.5h5"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1-.5-8A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9H7z"/><path d="M4 4l16 16"/></symbol>
+  <symbol id="i-retry" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 17l5-5-5-5M20 12H9M11 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5"/></symbol>
+  <symbol id="i-doc-missing" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M10 12.5a2 2 0 1 1 2.6 1.9c-.4.2-.6.5-.6.9v.4M12 18h.01"/></symbol>
+</svg>
+
+<div class="wrap">
+  <header class="intro">
+    <h1>Las pantallas del gestor de evidencias</h1>
+    <p>Azul <span class="code">#4F68F1</span> como color principal, verde agua <span class="code">#00BB9C</span> para lo que salió bien, azul marino para el texto y Plus Jakarta Sans, la tipografía de kiggu.io. Botones en píldora y tarjetas muy redondeadas, como en su web, pero algo más contenidas porque esto es una herramienta de trabajo, no una página de marketing.</p>
+    <p>Los casos son de ejemplo. Los campos, estados y límites (PDF, JPG o PNG hasta 5 MB, un archivo por caso) son los reales del API.</p>
+    <nav class="index" aria-label="Vistas">
+      <a href="#v-login">1 · Entrar</a><a href="#v-register">2 · Registro con errores</a>
+      <a href="#v-list">3 · Lista</a><a href="#v-loading">4 · Cargando</a><a href="#v-empty">5 · Vacía</a><a href="#v-error">6 · Error</a>
+      <a href="#v-new">7 · Nuevo caso</a><a href="#v-detail-empty">8 · Detalle sin evidencia</a><a href="#v-chosen">9 · Archivo elegido</a><a href="#v-uploading">10 · Subiendo</a><a href="#v-finishing">11 · Terminando</a>
+      <a href="#v-rejected">12 · Archivo rechazado</a><a href="#v-detail-file">13 · Detalle con evidencia</a><a href="#v-closed">14 · Caso cerrado</a>
+      <a href="#v-edit">15 · Editar</a><a href="#v-delete">16 · Eliminar</a><a href="#v-toasts">17 · Avisos</a>
+      <a href="#v-bad-credentials">18 · Credenciales incorrectas</a><a href="#v-not-found">19 · No encontrada</a><a href="#v-mobile-list">20 · Lista en el móvil</a><a href="#v-case-not-found">21 · Caso no encontrado</a><a href="#v-case-error">22 · Error al cargar el caso</a><a href="#v-error-map">23 · Mapa de errores</a><a href="#v-error-code">24 · Código de error</a>
+    </nav>
+  </header>
+
+  <p class="group-title">Acceso</p>
+
+  <!-- 1 LOGIN -->
+  <section class="view" id="v-login">
+    <div class="view-head"><h2>1 · Entrar</h2><span class="rf">RF-13</span><span class="rf">RF-02</span></div>
+    <p class="view-note">Ruta <span class="code">/login</span>. Si alguien sin sesión abre <span class="code">/cases</span>, la guarda lo manda aquí antes de enviar la página (RF-14).</p>
+    <div class="frame"><div class="app"><div class="auth">
+      <div class="auth-side">
+        <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+        <div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div>
+        <div><h3>Cada caso, con su evidencia a mano.</h3><p>Registra incidencias, adjunta el archivo que las respalda y ciérralas cuando estén resueltas.</p></div>
+      </div>
+      <div class="auth-form">
+        <div><h3>Entrar</h3><p class="sub">Usa el correo con el que te registraste.</p></div>
+        <div class="field"><label for="l-email">Correo</label><div class="input" id="l-email">ana@ejemplo.com</div></div>
+        <div class="field"><label for="l-pass">Contraseña</label><div class="input focus" id="l-pass">••••••••••</div></div>
+        <span class="btn btn-primary btn-block">Entrar</span>
+        <p class="switch">¿No tienes cuenta? <a href="#v-register">Regístrate</a></p>
+      </div>
+    </div></div></div>
+  </section>
+
+  <!-- 2 REGISTER -->
+  <section class="view" id="v-register">
+    <div class="view-head"><h2>2 · Registro, con errores junto al campo</h2><span class="rf">RF-13</span><span class="rf">RF-18</span><span class="rf">RF-01</span></div>
+    <p class="view-note">Ruta <span class="code">/register</span>. La contraseña corta se detecta en el navegador; el correo repetido lo dice el API (<span class="code">409</span>) y se pinta en el mismo sitio.</p>
+    <div class="frame"><div class="app"><div class="auth">
+      <div class="auth-side">
+        <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+        <div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div>
+        <div><h3>Crea tu cuenta en un minuto.</h3><p>Solo necesitas un correo y una contraseña. Tus casos solo los ves tú.</p></div>
+      </div>
+      <div class="auth-form">
+        <div><h3>Crear cuenta</h3></div>
+        <div class="field"><label for="r-email">Correo</label><div class="input err" id="r-email">ana@ejemplo.com</div><span class="ferr"><svg width="14" height="14"><use href="#i-alert"/></svg>Ya existe una cuenta con este correo.</span></div>
+        <div class="field"><label for="r-pass">Contraseña</label><div class="input err" id="r-pass">•••••</div><span class="ferr"><svg width="14" height="14"><use href="#i-alert"/></svg>Mínimo 8 caracteres.</span></div>
+        <span class="btn btn-primary btn-block">Crear cuenta</span>
+        <p class="switch">¿Ya tienes cuenta? <a href="#v-login">Entrar</a></p>
+      </div>
+    </div></div></div>
+  </section>
+
+  <p class="group-title">Lista de casos y sus tres estados</p>
+
+  <!-- 3 LIST -->
+  <section class="view" id="v-list">
+    <div class="view-head"><h2>3 · Lista con datos</h2><span class="rf">RF-06</span><span class="rf">RF-15</span></div>
+    <p class="view-note">Ruta <span class="code">/cases</span>. Filtro por estado y orden por última actualización o por creación, guardados en la dirección (<span class="code">/cases?status=closed</span>). Las pestañas no llevan recuentos: el API solo cuenta el filtro pedido. Cada fila lleva al detalle.</p>
+    <div class="frame"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
+      <div class="main">
+        <div class="row"><div><h3 class="h1">Mis casos</h3><p class="sub">4 casos</p></div><span class="btn btn-primary"><svg><use href="#i-plus"/></svg>Nuevo caso</span></div>
+        <div class="row"><span class="tabs"><span class="on">Todos</span><span>Abiertos</span><span>Cerrados</span></span><span class="select">Última actualización<svg><use href="#i-chev"/></svg></span></div>
+        <div class="panel list"><table>
+          <thead><tr><th>Caso</th><th>Estado</th><th>Evidencia</th><th>Actualizado</th></tr></thead>
+          <tbody>
+            <tr><td><div class="c-title">Reembolso de viáticos sin factura</div><div class="c-desc">Se reembolsaron 3 noches de hotel sin comprobante adjunto al informe.</div></td><td><span class="pill open">Abierto</span></td><td><span class="file"><span class="ficon pdf">PDF</span>factura-hotel.pdf <small>1,2 MB</small></span></td><td class="date">hace 2 h</td></tr>
+            <tr class="hover"><td><div class="c-title">Acceso no autorizado a nómina</div><div class="c-desc">Un usuario de soporte consultó la nómina fuera de horario.</div></td><td><span class="pill open">Abierto</span></td><td><span class="file"><span class="ficon img">PNG</span>registro-accesos.png <small>840 KB</small></span></td><td class="date">ayer</td></tr>
+            <tr><td><div class="c-title">Pérdida de portátil en viaje</div><div class="c-desc">Equipo extraviado en el aeropuerto; pendiente denuncia policial.</div></td><td><span class="pill open">Abierto</span></td><td><span class="nofile">Sin evidencia</span></td><td class="date">24 sep</td></tr>
+            <tr><td><div class="c-title">Cargo duplicado en tarjeta corporativa</div><div class="c-desc">El banco confirmó la devolución del segundo cargo.</div></td><td><span class="pill closed">Cerrado</span></td><td><span class="file"><span class="ficon pdf">PDF</span>extracto.pdf <small>310 KB</small></span></td><td class="date">19 sep</td></tr>
+          </tbody></table></div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 4 LOADING -->
+  <section class="view" id="v-loading">
+    <div class="view-head"><h2>4 · Cargando</h2><span class="rf">RF-15</span></div>
+    <p class="view-note">Un esqueleto con la misma forma que la tabla, para que nada salte cuando llegan los datos. Sin la palabra «cargando».</p>
+    <div class="frame"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
+      <div class="main">
+        <div class="row"><div><h3 class="h1">Mis casos</h3><p class="sub"><span class="sk" style="width:110px;height:10px;margin-top:6px"></span></p></div><span class="btn btn-primary"><svg><use href="#i-plus"/></svg>Nuevo caso</span></div>
+        <div class="row"><span class="tabs"><span class="on">Todos</span><span>Abiertos</span><span>Cerrados</span></span><span class="select">Última actualización<svg><use href="#i-chev"/></svg></span></div>
+        <div class="panel list"><table>
+          <thead><tr><th>Caso</th><th>Estado</th><th>Evidencia</th><th>Actualizado</th></tr></thead>
+          <tbody>
+            <tr><td><span class="sk" style="width:220px"></span><span class="sk" style="width:300px;height:9px;margin-top:8px"></span></td><td><span class="sk" style="width:70px;height:20px"></span></td><td><span class="sk" style="width:150px"></span></td><td><span class="sk" style="width:60px"></span></td></tr>
+            <tr><td><span class="sk" style="width:190px"></span><span class="sk" style="width:260px;height:9px;margin-top:8px"></span></td><td><span class="sk" style="width:70px;height:20px"></span></td><td><span class="sk" style="width:130px"></span></td><td><span class="sk" style="width:60px"></span></td></tr>
+            <tr><td><span class="sk" style="width:240px"></span><span class="sk" style="width:280px;height:9px;margin-top:8px"></span></td><td><span class="sk" style="width:70px;height:20px"></span></td><td><span class="sk" style="width:90px"></span></td><td><span class="sk" style="width:60px"></span></td></tr>
+          </tbody></table></div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 5 EMPTY -->
+  <section class="view" id="v-empty">
+    <div class="view-head"><h2>5 · Vacía</h2><span class="rf">RF-15</span></div>
+    <p class="view-note">Explica que no hay nada y ofrece crear el primero. Con un filtro activo el texto cambia: «No tienes casos cerrados».</p>
+    <div class="frame"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
+      <div class="main">
+        <div class="row"><div><h3 class="h1">Mis casos</h3><p class="sub">Aún no hay casos</p></div></div>
+        <div class="panel state">
+          <div class="ill" style="background:var(--blue-soft);color:var(--blue)"><svg><use href="#i-folder"/></svg></div>
+          <h3>Todavía no tienes casos</h3>
+          <p>Crea un caso para registrar una incidencia. Después podrás adjuntarle el archivo que la respalda.</p>
+          <span class="btn btn-primary" style="margin-top:8px"><svg><use href="#i-plus"/></svg>Crear mi primer caso</span>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 6 ERROR -->
+  <section class="view" id="v-error">
+    <div class="view-head"><h2>6 · Error al cargar</h2><span class="rf">RF-15</span><span class="rf">RF-19</span></div>
+    <p class="view-note">El código del API a la vista y un botón para reintentar. Nunca una pantalla en blanco.</p>
+    <div class="frame"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
+      <div class="main">
+        <div class="row"><div><h3 class="h1">Mis casos</h3></div><span class="btn btn-primary"><svg><use href="#i-plus"/></svg>Nuevo caso</span></div>
+        <div class="panel state">
+          <div class="ill" style="background:var(--red-soft);color:var(--red)"><svg><use href="#i-cloud"/></svg></div>
+          <h3>No pudimos cargar tus casos</h3>
+          <p>Parece un problema de conexión. Tus datos están a salvo; vuelve a intentarlo.</p>
+          <span class="errcode">Código de error: <b>NETWORK_ERROR</b></span>
+          <span class="btn btn-outline" style="margin-top:8px"><svg><use href="#i-retry"/></svg>Reintentar</span>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <p class="group-title">Crear y trabajar un caso</p>
+
+  <!-- 7 NEW -->
+  <section class="view" id="v-new">
+    <div class="view-head"><h2>7 · Nuevo caso</h2><span class="rf">RF-16</span><span class="rf">RF-05</span></div>
+    <p class="view-note">Un diálogo sobre la lista que pide solo título y descripción. El archivo se adjunta después, desde el detalle: al guardar se abre el caso recién creado.</p>
+    <div class="frame"><div class="app" style="min-height:560px">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span></div></div>
+      <div class="main"><div class="row"><h3 class="h1">Mis casos</h3></div><div class="panel" style="height:300px"></div></div>
+      <div class="shade"><div class="dialog">
+        <div><h3>Nuevo caso</h3><p class="sub">Podrás adjuntar la evidencia en el siguiente paso.</p></div>
+        <div class="field"><label for="n-title">Título</label><div class="input focus" id="n-title">Pérdida de portátil en viaje</div><span class="counter">28 / 120</span></div>
+        <div class="field"><label for="n-desc">Descripción</label><div class="input textarea ph" id="n-desc">Qué pasó, cuándo y a quién afecta…</div></div>
+        <div class="btns"><span class="btn btn-outline">Cancelar</span><span class="btn btn-primary">Crear caso</span></div>
+      </div></div>
+    </div></div>
+  </section>
+
+  <!-- 8 DETAIL EMPTY -->
+  <section class="view" id="v-detail-empty">
+    <div class="view-head"><h2>8 · Detalle sin evidencia</h2><span class="rf">RF-07</span><span class="rf">RF-17</span></div>
+    <p class="view-note">Ruta <span class="code">/cases/[id]</span>. La zona admite arrastrar y soltar o elegir con el botón. Soltar un archivo no lo sube todavía: primero se muestra para confirmarlo.</p>
+    <div class="frame"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
+      <div class="main">
+        <div class="crumb"><a href="#v-list"><svg><use href="#i-back"/></svg>Mis casos</a></div>
+        <div class="detail">
+          <div class="panel card">
+            <div class="row"><span class="pill open">Abierto</span><div class="actions"><span class="btn btn-outline"><svg><use href="#i-edit"/></svg>Editar</span><span class="btn btn-outline"><svg><use href="#i-lock"/></svg>Cerrar caso</span><span class="btn btn-danger-ghost"><svg><use href="#i-trash"/></svg>Eliminar</span></div></div>
+            <h3 class="dtitle">Pérdida de portátil en viaje</h3>
+            <p class="desc">El equipo asignado a Marta López se extravió en el aeropuerto de Barajas el 16 de septiembre. Se bloqueó la cuenta en remoto. Falta adjuntar la denuncia presentada ante la policía.</p>
+            <div class="meta"><span>Creado <b>24 sep 2026</b></span><span>Actualizado <b>24 sep 2026</b></span></div>
+          </div>
+          <div class="panel card">
+            <h4>Evidencia</h4>
+            <div class="drop">
+              <span class="ill"><svg><use href="#i-up"/></svg></span>
+              <strong>Arrastra aquí el archivo</strong>
+              <p>o <a href="#v-chosen">elígelo desde tu equipo</a></p>
+              <p>PDF, JPG o PNG de hasta 5 MB. Un archivo por caso.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 9 CHOSEN -->
+  <section class="view" id="v-chosen">
+    <div class="view-head"><h2>9 · Archivo elegido</h2><span class="rf">RF-17</span></div>
+    <p class="view-note">El archivo pasó la validación del navegador, pero aún no se ha enviado nada. Como la evidencia no se puede cambiar después, este es el único momento para arrepentirse.</p>
+    <div class="frame"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
+      <div class="main">
+        <div class="crumb"><a href="#v-list"><svg><use href="#i-back"/></svg>Mis casos</a></div>
+        <div class="detail">
+          <div class="panel card">
+            <div class="row"><span class="pill open">Abierto</span><div class="actions"><span class="btn btn-outline"><svg><use href="#i-edit"/></svg>Editar</span><span class="btn btn-outline"><svg><use href="#i-lock"/></svg>Cerrar caso</span><span class="btn btn-danger-ghost"><svg><use href="#i-trash"/></svg>Eliminar</span></div></div>
+            <h3 class="dtitle">Pérdida de portátil en viaje</h3>
+            <p class="desc">El equipo asignado a Marta López se extravió en el aeropuerto de Barajas el 16 de septiembre. Se bloqueó la cuenta en remoto. Falta adjuntar la denuncia presentada ante la policía.</p>
+            <div class="meta"><span>Creado <b>24 sep 2026</b></span><span>Actualizado <b>24 sep 2026</b></span></div>
+          </div>
+          <div class="panel card">
+            <h4>Evidencia</h4>
+            <div class="chosen">
+              <div class="doc"><span class="ficon pdf">PDF</span><div><div class="up-name">denuncia-policia.pdf</div><div class="up-sub">PDF de 2,4 MB</div></div></div>
+              <div class="note"><svg><use href="#i-alert"/></svg>Una vez adjuntado no se podrá cambiar por otro archivo.</div>
+              <div class="btns"><span class="btn btn-outline">Elegir otro</span><span class="btn btn-primary"><svg><use href="#i-up" style="stroke:#fff"/></svg>Adjuntar</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 10 UPLOADING -->
+  <section class="view" id="v-uploading">
+    <div class="view-head"><h2>10 · Subiendo</h2><span class="rf">RF-17</span></div>
+    <p class="view-note">Una sola barra. Por dentro ocurren tres llamadas (pedir enlace, subir, confirmar), pero la persona solo ve «subiendo» y luego «adjuntado».</p>
+    <div class="frame"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
+      <div class="main">
+        <div class="crumb"><a href="#v-list"><svg><use href="#i-back"/></svg>Mis casos</a></div>
+        <div class="detail">
+          <div class="panel card">
+            <div class="row"><span class="pill open">Abierto</span><div class="actions"><span class="btn btn-outline"><svg><use href="#i-edit"/></svg>Editar</span><span class="btn btn-outline"><svg><use href="#i-lock"/></svg>Cerrar caso</span><span class="btn btn-danger-ghost"><svg><use href="#i-trash"/></svg>Eliminar</span></div></div>
+            <h3 class="dtitle">Pérdida de portátil en viaje</h3>
+            <p class="desc">El equipo asignado a Marta López se extravió en el aeropuerto de Barajas el 16 de septiembre. Se bloqueó la cuenta en remoto. Falta adjuntar la denuncia presentada ante la policía.</p>
+            <div class="meta"><span>Creado <b>24 sep 2026</b></span><span>Actualizado <b>24 sep 2026</b></span></div>
+          </div>
+          <div class="panel card">
+            <h4>Evidencia</h4>
+            <div class="up">
+              <div class="up-row"><span class="ficon pdf">PDF</span><div style="flex:1"><div class="up-name">denuncia-policia.pdf</div><div class="up-sub">Subiendo 1,6 de 2,4 MB</div></div><span class="up-sub">64 %</span></div>
+              <div class="bar"><i style="width:64%"></i></div>
+            </div>
+            <p class="hint" style="margin:0">No cierres esta pestaña hasta que termine.</p>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+
+  <!-- 11 FINISHING -->
+  <section class="view" id="v-finishing">
+    <div class="view-head"><h2>11 · Terminando</h2><span class="rf">RF-17</span></div>
+    <p class="view-note">La barra llegó al 100 % y el archivo ya está en el almacenamiento; falta un segundo para que el servidor lo compruebe. Sin este texto la barra parecería colgada.</p>
+    <div class="frame"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
+      <div class="main">
+        <div class="crumb"><a href="#v-list"><svg><use href="#i-back"/></svg>Mis casos</a></div>
+        <div class="detail">
+          <div class="panel card">
+            <div class="row"><span class="pill open">Abierto</span><div class="actions"><span class="btn btn-outline"><svg><use href="#i-edit"/></svg>Editar</span><span class="btn btn-outline"><svg><use href="#i-lock"/></svg>Cerrar caso</span><span class="btn btn-danger-ghost"><svg><use href="#i-trash"/></svg>Eliminar</span></div></div>
+            <h3 class="dtitle">Pérdida de portátil en viaje</h3>
+            <p class="desc">El equipo asignado a Marta López se extravió en el aeropuerto de Barajas el 16 de septiembre. Se bloqueó la cuenta en remoto. Falta adjuntar la denuncia presentada ante la policía.</p>
+            <div class="meta"><span>Creado <b>24 sep 2026</b></span><span>Actualizado <b>24 sep 2026</b></span></div>
+          </div>
+          <div class="panel card">
+            <h4>Evidencia</h4>
+            <div class="up">
+              <div class="up-row"><span class="ficon pdf">PDF</span><div style="flex:1"><div class="up-name">denuncia-policia.pdf</div><div class="up-sub"><span class="spin" aria-hidden="true"></span>Terminando…</div></div><span class="up-sub">100 %</span></div>
+              <div class="bar full"><i style="width:100%"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 12 REJECTED -->
+  <section class="view" id="v-rejected">
+    <div class="view-head"><h2>12 · Archivo rechazado en el navegador</h2><span class="rf">RF-17</span><span class="rf">RF-18</span></div>
+    <p class="view-note">Tipo o tamaño incorrecto: se avisa en la propia zona, al instante y sin llamar al API. Es un error de validación, así que va junto al campo, no en un aviso flotante.</p>
+    <div class="frame"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
+      <div class="main">
+        <div class="crumb"><a href="#v-list"><svg><use href="#i-back"/></svg>Mis casos</a></div>
+        <div class="detail">
+          <div class="panel card">
+            <div class="row"><span class="pill open">Abierto</span><div class="actions"><span class="btn btn-outline"><svg><use href="#i-edit"/></svg>Editar</span><span class="btn btn-outline"><svg><use href="#i-lock"/></svg>Cerrar caso</span><span class="btn btn-danger-ghost"><svg><use href="#i-trash"/></svg>Eliminar</span></div></div>
+            <h3 class="dtitle">Pérdida de portátil en viaje</h3>
+            <p class="desc">El equipo asignado a Marta López se extravió en el aeropuerto de Barajas el 16 de septiembre. Se bloqueó la cuenta en remoto. Falta adjuntar la denuncia presentada ante la policía.</p>
+            <div class="meta"><span>Creado <b>24 sep 2026</b></span><span>Actualizado <b>24 sep 2026</b></span></div>
+          </div>
+          <div class="panel card">
+            <h4>Evidencia</h4>
+            <div class="drop bad">
+              <span class="ill"><svg><use href="#i-up"/></svg></span>
+              <strong>Arrastra aquí el archivo</strong>
+              <p>o <a href="#v-chosen">elígelo desde tu equipo</a></p>
+              <p>PDF, JPG o PNG de hasta 5 MB. Un archivo por caso.</p>
+            </div>
+            <span class="ferr"><svg width="14" height="14"><use href="#i-alert"/></svg>«video-camara.mp4» no se puede adjuntar: solo se admiten PDF, JPG o PNG.</span>
+            <span class="ferr"><svg width="14" height="14"><use href="#i-alert"/></svg>«escaneo-completo.pdf» pesa 8,2 MB y el máximo es 5 MB.</span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 11 DETAIL WITH FILE -->
+  <section class="view" id="v-detail-file">
+    <div class="view-head"><h2>13 · Detalle con evidencia</h2><span class="rf">RF-12</span><span class="rf">RF-17</span></div>
+    <p class="view-note">Al pulsar «Descargar» se pide un enlace nuevo en ese momento y el archivo se guarda solo. El enlace dura 60 segundos, pero la persona no necesita saberlo: nunca lo ve.</p>
+    <div class="frame"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
+      <div class="main">
+        <div class="crumb"><a href="#v-list"><svg><use href="#i-back"/></svg>Mis casos</a></div>
+        <div class="detail">
+          <div class="panel card">
+            <div class="row"><span class="pill open">Abierto</span><div class="actions"><span class="btn btn-outline"><svg><use href="#i-edit"/></svg>Editar</span><span class="btn btn-outline"><svg><use href="#i-lock"/></svg>Cerrar caso</span><span class="btn btn-danger-ghost"><svg><use href="#i-trash"/></svg>Eliminar</span></div></div>
+            <h3 class="dtitle">Reembolso de viáticos sin factura</h3>
+            <p class="desc">En el informe de gastos de agosto se reembolsaron tres noches de hotel en Valencia sin comprobante. El proveedor envió la factura después; se adjunta para cerrar la revisión.</p>
+            <div class="meta"><span>Creado <b>22 sep 2026</b></span><span>Actualizado <b>hoy, 10:14</b></span></div>
+          </div>
+          <div class="panel card">
+            <h4>Evidencia</h4>
+            <div class="evid">
+              <span class="ficon pdf">PDF</span>
+              <div class="evid-body"><div class="up-name">factura-hotel.pdf</div><div class="up-sub">PDF de 1,2 MB</div><span class="ok"><svg><use href="#i-check"/></svg>Verificada</span></div>
+              <span class="btn btn-primary"><svg><use href="#i-down"/></svg>Descargar</span>
+            </div>
+            <p class="hint" style="margin:0">Cada caso guarda un único archivo y no se puede reemplazar.</p>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 12 CLOSED -->
+  <section class="view" id="v-closed">
+    <div class="view-head"><h2>14 · Caso cerrado</h2><span class="rf">RF-08</span></div>
+    <p class="view-note">El botón pasa a «Reabrir»: se puede volver de cerrado a abierto. La evidencia se sigue pudiendo descargar.</p>
+    <div class="frame"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
+      <div class="main">
+        <div class="crumb"><a href="#v-list"><svg><use href="#i-back"/></svg>Mis casos</a></div>
+        <div class="detail">
+          <div class="panel card">
+            <div class="row"><span class="pill closed">Cerrado</span><div class="actions"><span class="btn btn-outline"><svg><use href="#i-edit"/></svg>Editar</span><span class="btn btn-outline"><svg><use href="#i-unlock"/></svg>Reabrir</span><span class="btn btn-danger-ghost"><svg><use href="#i-trash"/></svg>Eliminar</span></div></div>
+            <h3 class="dtitle">Cargo duplicado en tarjeta corporativa</h3>
+            <p class="desc">La tarjeta terminada en 4417 recibió dos cargos idénticos de 389,00 € de la aerolínea. El banco confirmó la devolución del segundo el 18 de septiembre.</p>
+            <div class="meta"><span>Creado <b>10 sep 2026</b></span><span>Actualizado <b>19 sep 2026</b></span></div>
+          </div>
+          <div class="panel card">
+            <h4>Evidencia</h4>
+            <div class="evid">
+              <span class="ficon pdf">PDF</span>
+              <div class="evid-body"><div class="up-name">extracto.pdf</div><div class="up-sub">PDF de 310 KB</div><span class="ok"><svg><use href="#i-check"/></svg>Verificada</span></div>
+              <span class="btn btn-outline"><svg><use href="#i-down"/></svg>Descargar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 13 EDIT -->
+  <section class="view" id="v-edit">
+    <div class="view-head"><h2>15 · Editar</h2><span class="rf">RF-16</span><span class="rf">RF-08</span></div>
+    <p class="view-note">El mismo diálogo que «Nuevo caso», relleno. El estado no se toca aquí: tiene su propio botón en el detalle.</p>
+    <div class="frame"><div class="app" style="min-height:560px">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span></div></div>
+      <div class="main"><div class="panel" style="height:360px"></div></div>
+      <div class="shade"><div class="dialog">
+        <h3>Editar caso</h3>
+        <div class="field"><label for="e-title">Título</label><div class="input" id="e-title">Pérdida de portátil en viaje</div><span class="counter">28 / 120</span></div>
+        <div class="field"><label for="e-desc">Descripción</label><div class="input textarea focus" id="e-desc">El equipo asignado a Marta López se extravió en el aeropuerto de Barajas el 16 de septiembre. Se bloqueó la cuenta en remoto.</div></div>
+        <div class="btns"><span class="btn btn-outline">Cancelar</span><span class="btn btn-primary">Guardar cambios</span></div>
+      </div></div>
+    </div></div>
+  </section>
+
+  <!-- 14 DELETE -->
+  <section class="view" id="v-delete">
+    <div class="view-head"><h2>16 · Eliminar</h2><span class="rf">RF-20</span><span class="rf">RF-09</span></div>
+    <p class="view-note">El caso en miniatura —estado, título y descripción reales— y su archivo, y avisa de que no se puede deshacer. Si el caso no tiene evidencia, la línea del archivo no aparece.</p>
+    <div class="frame"><div class="app" style="min-height:520px">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span></div></div>
+      <div class="main"><div class="panel" style="height:340px"></div></div>
+      <div class="shade"><div class="dialog">
+        <span class="danger-ic"><svg><use href="#i-trash"/></svg></span>
+        <h3>¿Estás seguro de eliminar este caso?</h3>
+        <div class="lost">
+          <div style="display:grid;gap:6px;justify-items:start"><span class="pill open">Abierto</span><b style="font-size:14px">Reembolso de viáticos sin factura</b><span style="display:block;color:var(--slate);font-size:13px;line-height:1.5">Se reembolsaron 3 noches de hotel en Valencia sin comprobante. El proveedor envió la factura después.</span></div>
+          <div style="border-top:1px solid #f1d9db;padding-top:10px"><span class="ficon pdf">PDF</span>factura-hotel.pdf, 1,2 MB</div>
+        </div>
+        <span class="warn"><svg width="16" height="16"><use href="#i-alert"/></svg>Se borrará definitivamente y no se puede deshacer.</span>
+        <div class="btns"><span class="btn btn-outline">Cancelar</span><span class="btn btn-danger">Eliminar caso y archivo</span></div>
+      </div></div>
+    </div></div>
+  </section>
+
+  <!-- 15 TOASTS -->
+  <section class="view" id="v-toasts">
+    <div class="view-head"><h2>17 · Avisos flotantes</h2><span class="rf">RF-19</span></div>
+    <p class="view-note">Los de éxito se cierran solos a los pocos segundos. Los de error se quedan hasta que alguien los cierra, llevan el código y, si la acción se puede repetir, un botón para reintentar.</p>
+    <div class="frame"><div class="app stack-demo">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span></div></div>
+      <div class="main"><div class="panel" style="height:220px"></div></div>
+      <div class="toasts">
+        <div class="toast"><span class="ti" style="background:var(--teal)"><svg><use href="#i-check"/></svg></span><div><b>Evidencia adjuntada</b><p>denuncia-policia.pdf ya está en el caso.</p></div><span class="x">×</span></div>
+        <div class="toast"><span class="ti" style="background:var(--red)"><svg><use href="#i-alert"/></svg></span><div><b>Se interrumpió la subida</b><p>Se perdió la conexión mientras se enviaba denuncia-policia.pdf.</p></div><span class="x">×</span><div class="tact"><span class="errcode">Código de error: <b>UPLOAD_FAILED</b></span><span class="btn btn-outline" style="padding:6px 14px"><svg><use href="#i-retry"/></svg>Reintentar</span></div></div>
+        <div class="toast"><span class="ti" style="background:var(--red)"><svg><use href="#i-alert"/></svg></span><div><b>No pudimos verificar el archivo</b><p>El servidor lo rechazó al revisarlo. Prueba con otro archivo.</p></div><span class="x">×</span><div class="tact"><span class="errcode">Código de error: <b>FILE_REJECTED</b></span></div></div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 18 WRONG CREDENTIALS -->
+  <section class="view" id="v-bad-credentials">
+    <div class="view-head"><h2>18 · Credenciales incorrectas</h2><span class="rf">RF-02</span><span class="rf">RF-13</span></div>
+    <p class="view-note">El API responde <span class="code">401</span> con <span class="code">INVALID_CREDENTIALS</span> y a propósito no dice si falló el correo o la contraseña, así que el error no puede ir debajo de un campo como en la pantalla 2. Va dentro del formulario, encima del botón: donde la persona ya está mirando. Solo el mensaje, sin el código, igual que los errores de campo. Lo escrito se conserva, el foco vuelve a la contraseña y el aviso se va en cuanto vuelve a escribir.</p>
+    <div class="frame"><div class="app"><div class="auth">
+      <div class="auth-side">
+        <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+        <div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div>
+        <div><h3>Cada caso, con su evidencia a mano.</h3><p>Registra incidencias, adjunta el archivo que las respalda y ciérralas cuando estén resueltas.</p></div>
+      </div>
+      <div class="auth-form">
+        <div><h3>Entrar</h3><p class="sub">Usa el correo con el que te registraste.</p></div>
+        <div class="field"><label for="a-email">Correo</label><div class="input" id="a-email">ana@ejemplo.com</div></div>
+        <div class="field"><label for="a-pass">Contraseña</label><div class="input focus" id="a-pass">••••••••••</div></div>
+        <div class="form-err" role="alert"><svg><use href="#i-alert"/></svg><b>El correo o la contraseña no son correctos.</b></div>
+        <span class="btn btn-primary btn-block">Entrar</span>
+        <p class="switch">¿No tienes cuenta? <a href="#v-register">Regístrate</a></p>
+      </div>
+    </div></div></div>
+  </section>
+
+  <!-- 19 NOT FOUND -->
+  <section class="view" id="v-not-found">
+    <div class="view-head"><h2>19 · No encontrada</h2><span class="rf">RF-14</span></div>
+    <p class="view-note">Con sesión, una dirección que no existe (por ejemplo <span class="code">/casos-2024</span>) muestra esto <b>dentro</b> de la zona privada: la barra superior sigue ahí, así que la persona ve que su sesión está intacta y que la aplicación no se ha roto. Nunca una redirección sin aviso. Sin sesión no se llega aquí: la guarda manda al login.</p>
+    <div class="frame"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
+      <div class="main">
+        <div class="panel state">
+          <div class="ill" style="background:var(--blue-soft);color:var(--blue)"><svg><use href="#i-doc-missing"/></svg></div>
+          <h3>No encontramos esta página</h3>
+          <p>Puede que la dirección esté mal escrita o que ya no exista. Tus casos siguen donde los dejaste.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px">
+            <span class="btn btn-primary"><svg><use href="#i-folder"/></svg>Volver a mis casos</span>
+            <span class="btn btn-outline"><svg><use href="#i-back"/></svg>Volver</span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 20 THE LIST ON A PHONE -->
+  <section class="view" id="v-mobile-list">
+    <div class="view-head"><h2>20 · La lista en el móvil</h2><span class="rf">RF-15</span></div>
+    <p class="view-note">A 375 px no caben las cuatro columnas de la pantalla 3. Dos opciones, con los mismos casos. <b>A</b> conserva la tabla y quita lo que menos aporta: la fecha, y el nombre del archivo, que queda como icono. <b>B</b> convierte cada fila en una tarjeta y lo muestra todo, a costa de mantener un segundo diseño de la lista.</p>
+    <div class="phones">
+      <div class="phone-col"><span class="option-tag">Opción A · tabla con menos columnas (elegida)</span>
+      <div class="phone"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who"><span class="avatar">AN</span></div></div>
+      <div class="main">
+        <div class="row"><div><h3 class="h1">Mis casos</h3><p class="sub">4 casos</p></div><span class="btn btn-primary"><svg><use href="#i-plus"/></svg>Nuevo caso</span></div>
+        <div class="row"><span class="tabs"><span class="on">Todos</span><span>Abiertos</span><span>Cerrados</span></span><span class="select">Última actualización<svg><use href="#i-chev"/></svg></span></div>
+        <div class="panel list"><table>
+          <thead><tr><th>Caso</th><th>Estado</th><th><span class="sr-only">Evidencia</span></th></tr></thead>
+          <tbody>
+            <tr><td><div class="c-title">Reembolso de viáticos sin factura</div><div class="c-desc">Se reembolsaron 3 noches de hotel sin comprobante adjunto al informe.</div></td><td><span class="pill open">Abierto</span></td><td><span class="ficon pdf" title="factura-hotel.pdf">PDF</span></td></tr>
+            <tr><td><div class="c-title">Acceso no autorizado a nómina</div><div class="c-desc">Un usuario de soporte consultó la nómina fuera de horario.</div></td><td><span class="pill open">Abierto</span></td><td><span class="ficon img" title="registro-accesos.png">PNG</span></td></tr>
+            <tr><td><div class="c-title">Pérdida de portátil en viaje</div><div class="c-desc">Equipo extraviado en el aeropuerto; pendiente denuncia policial.</div></td><td><span class="pill open">Abierto</span></td><td><span class="nofile">—</span></td></tr>
+            <tr><td><div class="c-title">Cargo duplicado en tarjeta corporativa</div><div class="c-desc">El banco confirmó la devolución del segundo cargo.</div></td><td><span class="pill closed">Cerrado</span></td><td><span class="ficon pdf" title="extracto.pdf">PDF</span></td></tr>
+          </tbody></table></div>
+      </div>
+      </div></div></div>
+
+      <div class="phone-col"><span class="option-tag">Opción B · tarjetas</span>
+      <div class="phone"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who"><span class="avatar">AN</span></div></div>
+      <div class="main">
+        <div class="row"><div><h3 class="h1">Mis casos</h3><p class="sub">4 casos</p></div><span class="btn btn-primary"><svg><use href="#i-plus"/></svg>Nuevo caso</span></div>
+        <div class="row"><span class="tabs"><span class="on">Todos</span><span>Abiertos</span><span>Cerrados</span></span><span class="select">Última actualización<svg><use href="#i-chev"/></svg></span></div>
+        <div class="mcards">
+          <div class="mcard"><div class="top"><span class="pill open">Abierto</span><span class="date">hace 2 h</span></div><div class="c-title">Reembolso de viáticos sin factura</div><div class="c-desc">Se reembolsaron 3 noches de hotel sin comprobante adjunto al informe.</div><span class="file"><span class="ficon pdf">PDF</span>factura-hotel.pdf <small>1,2 MB</small></span></div>
+          <div class="mcard"><div class="top"><span class="pill open">Abierto</span><span class="date">ayer</span></div><div class="c-title">Acceso no autorizado a nómina</div><div class="c-desc">Un usuario de soporte consultó la nómina fuera de horario.</div><span class="file"><span class="ficon img">PNG</span>registro-accesos.png <small>840 KB</small></span></div>
+          <div class="mcard"><div class="top"><span class="pill open">Abierto</span><span class="date">24 sep</span></div><div class="c-title">Pérdida de portátil en viaje</div><div class="c-desc">Equipo extraviado en el aeropuerto; pendiente denuncia policial.</div><span class="nofile" style="margin-top:4px;padding-top:10px;border-top:1px solid var(--line)">Sin evidencia</span></div>
+          <div class="mcard"><div class="top"><span class="pill closed">Cerrado</span><span class="date">19 sep</span></div><div class="c-title">Cargo duplicado en tarjeta corporativa</div><div class="c-desc">El banco confirmó la devolución del segundo cargo.</div><span class="file"><span class="ficon pdf">PDF</span>extracto.pdf <small>310 KB</small></span></div>
+        </div>
+      </div>
+      </div></div></div>
+    </div>
+  </section>
+
+  <p class="group-title">Errores en la pantalla de un caso</p>
+
+  <!-- 21 CASE NOT FOUND -->
+  <section class="view" id="v-case-not-found">
+    <div class="view-head"><h2>21 · Caso no encontrado</h2><span class="rf">RF-07</span><span class="rf">RF-16</span></div>
+    <p class="view-note">Ruta <span class="code">/cases/[id]</span> de un caso borrado, de otra persona o con una dirección inventada (<span class="code">/cases/abc</span>). Las tres se ven igual a propósito: una desconocida no puede saber si el caso existe. Dentro de la zona privada, como la pantalla 19.</p>
+    <div class="frame"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
+      <div class="main">
+        <div class="panel state">
+          <div class="ill" style="background:var(--blue-soft);color:var(--blue)"><svg><use href="#i-doc-missing"/></svg></div>
+          <h3>No encontramos este caso</h3>
+          <p>Puede que se haya eliminado o que la dirección no sea correcta. Tus demás casos siguen donde los dejaste.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px">
+            <span class="btn btn-primary"><svg><use href="#i-folder"/></svg>Volver a mis casos</span>
+            <span class="btn btn-outline"><svg><use href="#i-back"/></svg>Volver</span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 22 CASE LOAD ERROR -->
+  <section class="view" id="v-case-error">
+    <div class="view-head"><h2>22 · Error al cargar el caso</h2><span class="rf">RF-19</span></div>
+    <p class="view-note">El caso no llegó: sin conexión o con el servidor caído. Como la lista (pantalla 6), el código a la vista y <b>Reintentar</b>. Un recorrido típico: abres la dirección de un caso recién borrado sin señal → esta pantalla; vuelve la señal, pulsas <b>Reintentar</b> → el API responde que no existe → pantalla 21. Si el caso ya estaba en pantalla y solo falla un refresco en segundo plano, el caso se queda: esta pantalla es solo para cuando no hay nada que mostrar.</p>
+    <div class="frame"><div class="app">
+      <div class="topbar"><div class="brand"><span class="mark"><svg><use href="#i-logo"/></svg></span>Gestor de evidencias</div><div class="who">ana@ejemplo.com<span class="avatar">AN</span><span class="btn btn-ghost"><svg><use href="#i-logout"/></svg>Salir</span></div></div>
+      <div class="main">
+        <div class="panel state">
+          <div class="ill" style="background:var(--red-soft);color:var(--red)"><svg><use href="#i-cloud"/></svg></div>
+          <h3>No pudimos cargar el caso</h3>
+          <p>No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.</p>
+          <span class="errcode">Código de error: <b>NETWORK_ERROR</b></span>
+          <span class="btn btn-outline" style="margin-top:8px"><svg><use href="#i-retry"/></svg>Reintentar</span>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 23 ERROR MAP -->
+  <section class="view" id="v-error-map">
+    <div class="view-head"><h2>23 · Mapa de errores</h2><span class="rf">RF-18</span><span class="rf">RF-19</span><span class="rf">RF-23</span></div>
+    <p class="view-note">Cada código que el API puede devolver (su <span class="code">error-codes.ts</span>), más los dos que pone el front, <span class="code">NETWORK_ERROR</span> y <span class="code">UPLOAD_FAILED</span>: cuándo pasa, dónde se ve y qué lee la persona. Los errores de campo van junto al campo; los de operación, en un aviso flotante con el código.</p>
+    <div class="frame"><div class="app" style="min-width:880px"><div class="main">
+      <div class="panel list"><table class="map">
+        <thead><tr><th>Código</th><th>Cuándo pasa</th><th>Dónde se ve</th><th>Lo que lee la persona</th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="4">Al abrir un caso — la pantalla entera</td></tr>
+          <tr><td><span class="code">NETWORK_ERROR</span></td><td>Sin conexión, o el API no responde</td><td>Pantalla 22, con <b>Reintentar</b></td><td>No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.</td></tr>
+          <tr><td><span class="code">INTERNAL_ERROR</span></td><td>Falla el servidor</td><td>Pantalla 22, con <b>Reintentar</b></td><td>Algo falló en el servidor. Inténtalo de nuevo.</td></tr>
+          <tr><td><span class="code">CASE_NOT_FOUND</span><br><span class="code">CASE_FORBIDDEN</span><br><span class="code">VALIDATION_ERROR</span></td><td>No existe, es de otra persona o la dirección no es un id válido. Las tres igual: nadie puede deducir que un caso ajeno existe</td><td>Pantalla 21</td><td>No encontramos este caso</td></tr>
+          <tr><td><span class="code">UNAUTHENTICATED</span></td><td>La sesión caducó (en cualquier pantalla y acción)</td><td>Ninguna: se va al login</td><td>—</td></tr>
+          <tr class="grp"><td colspan="4">Acciones sobre el caso — aviso flotante (pantalla 17), salvo los errores de campo</td></tr>
+          <tr><td><span class="code">TOO_SHORT</span><br><span class="code">TOO_LONG</span><br><span class="code">INVALID_FORMAT</span><br><span class="code">INVALID_TYPE</span></td><td>Al editar: un campo no cumple la regla (casi siempre lo detecta antes el navegador)</td><td>Debajo del campo (pantallas 2 y 15)</td><td>Este campo es obligatorio. · Máximo 120 caracteres. · …</td></tr>
+          <tr><td><span class="code">CASE_NOT_FOUND</span></td><td>Editar, cerrar o eliminar un caso que otra ventana u otro dispositivo ya borró</td><td>Aviso, y la pantalla pasa a la 21</td><td>Este caso ya no existe. Puede que se haya eliminado.</td></tr>
+          <tr><td><span class="code">NETWORK_ERROR</span><br><span class="code">INTERNAL_ERROR</span></td><td>Se cae la conexión o el servidor a mitad de una acción</td><td>Aviso; el caso sigue en pantalla</td><td>Los mismos textos de arriba</td></tr>
+          <tr class="grp"><td colspan="4">Evidencia — subir y descargar</td></tr>
+          <tr><td><span class="code">FILE_TYPE_NOT_ALLOWED</span><br><span class="code">FILE_TOO_LARGE</span></td><td>Tipo o tamaño fuera del límite</td><td><b>Navegador:</b> debajo de la zona (pantalla 12). <b>API</b>, si su entorno tuviera otros límites: aviso</td><td>«video.mp4» no se puede adjuntar: solo se admiten PDF, JPG o PNG. · «escaneo.pdf» pesa 8,2 MB y el máximo es 5 MB.</td></tr>
+          <tr><td><span class="code">FILE_ALREADY_ATTACHED</span></td><td>Otra ventana u otro dispositivo adjuntó un archivo antes</td><td>Aviso</td><td>Este caso ya tiene un archivo, y la evidencia no se puede cambiar.</td></tr>
+          <tr><td><span class="code">UPLOAD_FAILED</span></td><td>Se corta la subida a Cloudflare (código propio del front: R2 no habla nuestro formato)</td><td>Aviso; el archivo sigue elegido para reintentar</td><td>La subida se interrumpió. Revisa tu conexión e inténtalo de nuevo.</td></tr>
+          <tr><td><span class="code">FILE_NOT_UPLOADED</span><br><span class="code">FILE_KEY_MISMATCH</span></td><td>El API no encuentra el archivo subido, o la clave no es de este caso</td><td>Aviso</td><td>No pudimos verificar el archivo. Inténtalo de nuevo.</td></tr>
+          <tr><td><span class="code">FILE_REJECTED</span></td><td>El archivo real no cumple (tamaño o tipo de verdad)</td><td>Aviso</td><td>No pudimos verificar el archivo. Elige otro e inténtalo de nuevo.</td></tr>
+          <tr><td><span class="code">FILE_NOT_FOUND</span></td><td>Descargar de un caso que ya no tiene archivo</td><td>Aviso</td><td>Este caso ya no tiene ningún archivo.</td></tr>
+          <tr class="grp"><td colspan="4">Entrar y registrarse</td></tr>
+          <tr><td><span class="code">EMAIL_TAKEN</span></td><td>Registro con un correo que ya existe</td><td>Debajo del correo (pantalla 2)</td><td>Ya existe una cuenta con este correo.</td></tr>
+          <tr><td><span class="code">INVALID_CREDENTIALS</span></td><td>Correo o contraseña incorrectos</td><td>Dentro del formulario (pantalla 18)</td><td>El correo o la contraseña no son correctos.</td></tr>
+          <tr class="grp"><td colspan="4">Sin texto propio — solo un fallo de programación del front puede provocarlos (RF-19)</td></tr>
+          <tr class="warnrow"><td><span class="code">UNREADABLE_BODY</span><br><span class="code">PAYLOAD_TOO_LARGE</span><br><span class="code">ROUTE_NOT_FOUND</span><br><span class="code">UNKNOWN_FIELD</span><br><span class="code">NOTHING_TO_CHANGE</span></td><td>JSON roto, cuerpo enorme, ruta que no existe, un campo de más o un PATCH vacío. El front nunca los envía así</td><td>Aviso con el código</td><td>Algo salió mal. Si vuelve a pasar, avisa con este código. (texto de reserva)</td></tr>
+        </tbody></table></div>
+    </div></div></div>
+  </section>
+
+  <!-- 24 ERROR CODE STYLE -->
+  <section class="view" id="v-error-code">
+    <div class="view-head"><h2>24 · Cómo se muestra el código de error</h2><span class="rf">RF-15</span><span class="rf">RF-19</span></div>
+    <p class="view-note">El código se queda (RF-19): sirve para pedir ayuda y muestra el contrato del API. Lo que cambia es su peso. <b>Antes</b> iba en letra de programador dentro de una cajita, y compite con el mensaje. <b>Opción A</b>: dato secundario, pequeño y gris, con una etiqueta que dice qué es. Igual en las pantallas de error (6, 22) y en los avisos (17).</p>
+    <div class="compare">
+      <div class="phone-col"><span class="option-tag">Antes</span>
+        <div class="frame"><div class="app" style="min-width:0"><div class="main">
+          <div class="panel state">
+            <div class="ill" style="background:var(--red-soft);color:var(--red)"><svg><use href="#i-cloud"/></svg></div>
+            <h3>No pudimos cargar el caso</h3>
+            <p>No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.</p>
+            <span class="code">NETWORK_ERROR</span>
+            <span class="btn btn-outline" style="margin-top:8px"><svg><use href="#i-retry"/></svg>Reintentar</span>
+          </div>
+          <div class="toast solo"><span class="ti" style="background:var(--red)"><svg><use href="#i-alert"/></svg></span><div><b>Este caso ya no existe. Puede que se haya eliminado.</b><p style="margin-top:4px"><span class="code">CASE_NOT_FOUND</span></p></div><span class="x">×</span></div>
+        </div></div></div>
+      </div>
+      <div class="phone-col"><span class="option-tag">Opción A · código discreto (elegida)</span>
+        <div class="frame"><div class="app" style="min-width:0"><div class="main">
+          <div class="panel state">
+            <div class="ill" style="background:var(--red-soft);color:var(--red)"><svg><use href="#i-cloud"/></svg></div>
+            <h3>No pudimos cargar el caso</h3>
+            <p>No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.</p>
+            <span class="errcode">Código de error: <b>NETWORK_ERROR</b></span>
+            <span class="btn btn-outline" style="margin-top:8px"><svg><use href="#i-retry"/></svg>Reintentar</span>
+          </div>
+          <div class="toast solo"><span class="ti" style="background:var(--red)"><svg><use href="#i-alert"/></svg></span><div><b>Este caso ya no existe. Puede que se haya eliminado.</b><p style="margin-top:4px"><span class="errcode">Código de error: <b>CASE_NOT_FOUND</b></span></p></div><span class="x">×</span></div>
+        </div></div></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
