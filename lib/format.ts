@@ -61,8 +61,12 @@ const oneDecimal = new Intl.NumberFormat('es', { maximumFractionDigits: 1 })
 const KB = 1024
 const MB = 1024 * KB
 
-// «840 KB» · «1,2 MB»
+// «396 bytes» · «840 KB» · «1,2 MB». Under 1 KB the exact count: rounded, a 396-byte file
+// would read «1 KB» — and evidence is worth reading precisely.
 export function formatSize(bytes: number): string {
-  if (bytes < MB) return `${Math.max(1, Math.round(bytes / KB))} KB`
+  if (bytes < KB) return bytes === 1 ? '1 byte' : `${bytes} bytes`
+  // Rounded before choosing the unit: 1,048,200 bytes would otherwise read «1024 KB»
+  const kb = Math.round(bytes / KB)
+  if (kb < 1024) return `${kb} KB`
   return `${oneDecimal.format(bytes / MB)} MB`
 }

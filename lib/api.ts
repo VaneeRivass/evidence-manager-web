@@ -55,3 +55,24 @@ api.interceptors.response.use(
     throw new ApiError(problem.code, problem.params, problem.errors)
   },
 )
+
+// RF-17 · the file, straight from the browser to storage with the link the API signed.
+// Plain axios, NOT the `api` instance: storage is not our API, and its interceptor would
+// read an XML error as a missing response. withCredentials stays false, so the session
+// cookie never travels to Cloudflare. Any failure — a dropped connection, a 403 for an
+// expired link — is UPLOAD_FAILED: storage knows none of our codes (requirements, RF-19).
+export async function uploadToStorage(
+  uploadUrl: string,
+  file: File,
+  onProgress: (fraction: number) => void,
+): Promise<void> {
+  try {
+    await axios.put(uploadUrl, file, {
+      // Must be the type that was signed, or storage refuses the upload
+      headers: { 'Content-Type': file.type },
+      onUploadProgress: (event) => onProgress(event.progress ?? 0),
+    })
+  } catch {
+    throw new ApiError('UPLOAD_FAILED')
+  }
+}

@@ -65,6 +65,7 @@ hooks/
 lib/
   api.ts                 the ONLY place that makes HTTP requests (axios)
   schemas.ts             Zod
+  files.ts               the evidence's allowed types and size, copied from the API (RF-17)
   messages.es.ts         error code → Spanish text
   notify.ts              the floating notice for operation errors (RF-19)
   session.ts             goToLogin: a full page load, which drops the cache (RF-04, RF-14)

@@ -1,4 +1,5 @@
 import type { CaseStatus } from '@/lib/caseFilters'
+import { fileLabel } from '@/lib/files'
 import { cn } from '@/lib/utils'
 
 export function StatusPill({ status }: { status: CaseStatus }) {
@@ -17,18 +18,25 @@ export function StatusPill({ status }: { status: CaseStatus }) {
   )
 }
 
-const kinds: Record<string, { label: string; kind: 'pdf' | 'image' }> = {
-  'application/pdf': { label: 'PDF', kind: 'pdf' },
-  'image/png': { label: 'PNG', kind: 'image' },
-  'image/jpeg': { label: 'JPG', kind: 'image' },
-}
-
-// The mockup's file drawn as a document with a folded corner, its type on it (globals.css)
-export function FileIcon({ type }: { type: string | null }) {
-  const known = kinds[type ?? '']
+// The mockup's file drawn as a document with a folded corner, its type on it (globals.css).
+// Red for a PDF, teal for an image. `className` sizes it: the evidence panel draws it larger.
+export function FileIcon({
+  type,
+  className,
+}: {
+  type: string | null
+  className?: string
+}) {
+  const label = fileLabel(type)
   return (
-    <span aria-hidden className="file-icon" data-kind={known?.kind}>
-      {known?.label}
+    <span
+      aria-hidden
+      className={cn('file-icon', className)}
+      data-kind={
+        label && (type?.toLowerCase().startsWith('image/') ? 'image' : 'pdf')
+      }
+    >
+      {label}
     </span>
   )
 }
