@@ -9,10 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import type { CaseStatus } from '@/lib/cases'
 import {
-  type CaseFilters as Filters,
+  type CaseListFilters,
   type CaseSort,
-  type CaseStatus,
   casesHref,
 } from '@/lib/caseFilters'
 import { cn } from '@/lib/utils'
@@ -28,9 +28,9 @@ const sorts: { label: string; value: CaseSort }[] = [
   { label: 'Fecha de creación', value: 'createdAt' },
 ]
 
-// RF-06 · the tabs are links and the ordering rewrites the address: the address is where
-// the filters live, so reloading or going back keeps them
-export function CaseFilters({ filters }: { filters: Filters }) {
+// The tabs are links and the ordering rewrites the address: the address is where the filters
+// live, so reloading or going back keeps them (RF-06).
+export function CaseFilters({ filters }: { filters: CaseListFilters }) {
   const router = useRouter()
 
   return (

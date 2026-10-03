@@ -1,5 +1,5 @@
 import { CloudOff, RotateCw } from 'lucide-react'
-import { StatePanel } from '@/components/StatePanel'
+import { StatePanel } from '@/components/common/StatePanel'
 import { Button } from '@/components/ui/button'
 import { CODE_LABEL, message } from '@/lib/messages.es'
 

@@ -1,8 +1,8 @@
 import type { Params } from './api'
 import { formatSize } from './format'
 
-// RF-17 · the evidence the API accepts, copied from its .env.example. The API still decides
-// (RNF-04): if they ever differ, its own error arrives as a notice.
+// The evidence the API accepts, copied from its .env.example. The API still decides (RNF-04):
+// if they ever differ, its own error arrives as a notice (RF-17).
 
 // MIME type → the name a person knows it by. The order is the order they read it in.
 const FILE_TYPES: Record<string, string> = {

@@ -5,8 +5,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { CaseFormDialog } from './CaseFormDialog'
 
-// RF-15 · RF-16 · the button and the dialog it opens, together: the list's header and its
-// empty state each place one
+// The button and the dialog it opens, together: the list's header and its empty state each
+// place one (RF-15, RF-16).
 export function NewCaseButton({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
 

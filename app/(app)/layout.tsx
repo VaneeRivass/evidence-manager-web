@@ -1,4 +1,4 @@
-import { TopBar } from '@/components/TopBar'
+import { TopBar } from '@/components/app/TopBar'
 
 // Every private page: the top bar, then the page. proxy.ts has already made sure there is
 // a session cookie before any of this is served.

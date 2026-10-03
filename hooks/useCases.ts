@@ -5,47 +5,23 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import { api, isNetworkError } from '@/lib/api'
-import type { CaseFilters, CaseStatus } from '@/lib/caseFilters'
+import {
+  type Case,
+  type CasesPage,
+  type CaseStatus,
+  casePath,
+} from '@/lib/cases'
+import type { CaseListFilters } from '@/lib/caseFilters'
 import type { CaseInput } from '@/lib/schemas'
 
 // The only place that knows the case routes. How a request is made lives in lib/api.ts.
 
-// What the API sends for a case (evidence-manager-api, cases.mapper.ts)
-export type Case = {
-  id: string
-  title: string
-  description: string
-  status: CaseStatus
-  fileName: string | null
-  fileSize: number | null
-  fileType: string | null
-  createdAt: string
-  updatedAt: string
-}
-
-// RF-06 · at most 100 items; total counts every case matching the filter
-type CasesPage = { items: Case[]; total: number }
-
 // The filters are part of the key: each combination is cached on its own, and going back
 // to one already seen shows it at once while it refreshes
-export function useCases(filters: CaseFilters) {
+export function useCases(filters: CaseListFilters) {
   return useQuery({
     queryKey: ['cases', filters],
-    queryFn: async () =>
-      (await api.get<CasesPage>('/cases', { params: filters })).data,
-  })
-}
-
-// The id comes from the address, which anyone can type: encoded, `/cases/..%2Fauth%2Fme`
-// stays one path segment the API rejects as malformed, instead of becoming another route
-export const casePath = (id: string) => `/cases/${encodeURIComponent(id)}`
-
-// RF-07 · one case. Its own key, not under ['cases']: invalidating the lists does not throw
-// away the case being looked at
-export function useCase(id: string) {
-  return useQuery({
-    queryKey: ['case', id],
-    queryFn: async () => (await api.get<Case>(casePath(id))).data,
+    queryFn: () => api.get<CasesPage>('/cases', { params: filters }),
   })
 }
 
@@ -76,41 +52,34 @@ export function useCaseMutation<Variables>(
   })
 }
 
-// RF-05 · RF-08 · the dialog's save: creates without a case, edits with one. The dialog
-// shows its own errors (CaseFormDialog.tsx).
+// The dialog's save: creates without a case, edits with one. The dialog shows its own errors
+// (CaseFormDialog.tsx · RF-05, RF-08).
 export const useSaveCase = (item?: Case) =>
   useCaseMutation(
-    async (input: CaseInput) => {
-      const request = item
+    async (input: CaseInput) =>
+      item
         ? api.patch<Case>(casePath(item.id), input)
-        : api.post<Case>('/cases', input)
-      return (await request).data
-    },
+        : api.post<Case>('/cases', input),
     { formHandlesErrors: true },
   )
 
-// RF-08 · closing and reopening, from the case page's button
+// Closing and reopening, from the case page's button (RF-08)
 export const useCaseStatus = (id: string) =>
-  useCaseMutation(
-    async (status: CaseStatus) =>
-      (await api.patch<Case>(casePath(id), { status })).data,
+  useCaseMutation(async (status: CaseStatus) =>
+    api.patch<Case>(casePath(id), { status }),
   )
 
-// RF-12 · a fresh link on every click. Signed as an attachment, so the browser saves the
-// file and the page stays.
+// A fresh link on every click. Signed as an attachment, so the browser saves the file and
+// the page stays (RF-12).
 export const useDownloadFile = (id: string) =>
   useMutation({
-    mutationFn: async () =>
-      (
-        await api.get<{ downloadUrl: string }>(
-          `${casePath(id)}/file/download-url`,
-        )
-      ).data,
+    mutationFn: () =>
+      api.get<{ downloadUrl: string }>(`${casePath(id)}/file/download-url`),
     onSuccess: ({ downloadUrl }) => window.location.assign(downloadUrl),
   })
 
-// RF-09 · the lists refresh. The case is marked stale, not removed: removed, its page — still
-// open while it moves to the list — would ask for it again and flash a 404.
+// The lists refresh. The case is marked stale, not removed: removed, its page — still open
+// while it moves to the list — would ask for it again and flash a 404 (RF-09).
 export function useDeleteCase(id: string) {
   const queryClient = useQueryClient()
 

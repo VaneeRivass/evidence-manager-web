@@ -14,8 +14,8 @@ export const ariaFor = (id: string, error?: string) => ({
   'aria-describedby': error ? `${id}-error` : undefined,
 })
 
-// A label, its input and — RF-18 — the error right under the field that caused it.
-// `aside` sits at the label's right: a character count.
+// A label, its input and the error right under the field that caused it. `aside` sits at the
+// label's right: a character count (RF-18).
 export function FormField({
   id,
   label,
@@ -43,8 +43,8 @@ export function FormField({
   )
 }
 
-// RF-18 · the message under a field, with the id ariaFor points at. On its own for a field
-// that is not a text input: the evidence's drop area.
+// The message under a field, with the id ariaFor points at. On its own for a field that is
+// not a text input: the evidence's drop area (RF-18).
 export function FieldError({ id, error }: { id: string; error?: string }) {
   if (!error) return null
   return (

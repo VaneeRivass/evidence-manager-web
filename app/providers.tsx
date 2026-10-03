@@ -31,8 +31,8 @@ const leaveOn401 = (error: unknown) => {
   if (isUnauthenticated(error)) goToLogin()
 }
 
-// RF-19 · the notices as mockup screens 17 and 25 draw them. Unstyled: these classes are the
-// whole look; sonner only places and animates them.
+// The notices as mockup screens 17 and 25 draw them. Unstyled: these classes are the whole
+// look; sonner only places and animates them (RF-19).
 const NOTICE_ICONS: ToasterProps['icons'] = {
   success: <CircleCheck className="size-5 text-accent-foreground" />,
   error: <CircleAlert className="size-5 text-destructive" />,
@@ -69,8 +69,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
           },
         }),
         defaultOptions: {
-          // RF-19 · offline, fail at once with NETWORK_ERROR. TanStack's default would pause
-          // the request: an upload would sit at 0 % with nothing said.
+          // Offline, fail at once with NETWORK_ERROR. TanStack's default would pause the
+          // request: an upload would sit at 0 % with nothing said (RF-19).
           mutations: { networkMode: 'always' },
           queries: {
             networkMode: 'always',

@@ -10,13 +10,15 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { type Case, useDeleteCase } from '@/hooks/useCases'
+import { useDeleteCase } from '@/hooks/useCases'
+import type { Case } from '@/lib/cases'
 import { formatSize } from '@/lib/format'
+import { successMessages } from '@/lib/messages.es'
 import { notifySuccess } from '@/lib/notify'
 import { FileIcon, StatusPill } from './CaseBadges'
 
-// RF-20 · mockup screen 16: names what is lost — the case and its file — and that it cannot
-// be undone
+// Names what is lost — the case and its file — and that it cannot be undone
+// (RF-20 · mockup screen 16).
 export function DeleteCaseDialog({
   item,
   open,
@@ -35,7 +37,7 @@ export function DeleteCaseDialog({
     remove.mutate(undefined, {
       onSuccess: () => {
         // The only change whose result is not on screen: the case is gone (RF-16)
-        notifySuccess('Caso eliminado')
+        notifySuccess(successMessages.caseDeleted)
         router.push('/cases')
       },
     })

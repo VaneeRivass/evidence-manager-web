@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { CaseList } from '@/components/cases/CaseList'
-import { CaseListSkeleton } from '@/components/cases/CaseListStates'
+import { CaseTableSkeleton } from '@/components/cases/CaseTableSkeleton'
 
 export const metadata: Metadata = { title: 'Mis casos · Gestor de evidencias' }
 
@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: 'Mis casos · Gestor de evidencias' }
 // needs a Suspense boundary around it, and shows the fallback until then
 export default function CasesPage() {
   return (
-    <Suspense fallback={<CaseListSkeleton />}>
+    <Suspense fallback={<CaseTableSkeleton />}>
       <CaseList />
     </Suspense>
   )

@@ -5,10 +5,11 @@ import { CircleAlert } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
-import { FormField, ariaFor, inputClass } from '@/components/FormField'
+import { FormField, ariaFor, inputClass } from '@/components/common/FormField'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useLogin, useRegister } from '@/hooks/useAuth'
+import { useLogin, useRegister } from '@/hooks/useSession'
+import { successMessages } from '@/lib/messages.es'
 import { notifyError, notifySuccess } from '@/lib/notify'
 import { type Credentials, loginSchema, registerSchema } from '@/lib/schemas'
 import { showAuthError } from './showAuthError'
@@ -58,8 +59,8 @@ export function AuthForm({ mode }: { mode: keyof typeof modes }) {
         router.replace('/cases')
         return
       }
-      // RF-13 · registering does not sign the person in
-      notifySuccess('Cuenta creada. Ya puedes entrar.')
+      // Registering does not sign the person in (RF-13)
+      notifySuccess(successMessages.registered)
       router.replace('/login')
     } catch (error) {
       if (!showAuthError(error, form)) notifyError(error)

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { Case } from '@/hooks/useCases'
+import type { Case } from '@/lib/cases'
 import { useFileUpload } from '@/hooks/useFileUpload'
 import { checkFile } from '@/lib/files'
 import { message } from '@/lib/messages.es'
@@ -10,8 +10,8 @@ import { EvidenceChosenFile } from './EvidenceChosenFile'
 import { EvidenceDropArea } from './EvidenceDropArea'
 import { EvidenceUploading } from './EvidenceUploading'
 
-// RF-17 · RF-12 · the case's evidence (mockup screens 8 to 13). It only picks which of the
-// four states to show; each one is drawn in its own file.
+// The case's evidence. It picks one of four states and nothing else; each state is drawn in
+// its own file (RF-12, RF-17 · mockup screens 8 to 13).
 export function EvidencePanel({ item }: { item: Case }) {
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState<string>()

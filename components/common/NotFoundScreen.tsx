@@ -1,10 +1,10 @@
 import { FileQuestion, FolderOpen } from 'lucide-react'
 import Link from 'next/link'
-import { BackButton } from '@/components/BackButton'
-import { StatePanel } from '@/components/StatePanel'
+import { BackButton } from '@/components/common/BackButton'
+import { StatePanel } from '@/components/common/StatePanel'
 import { Button } from '@/components/ui/button'
 
-// RF-14 · mockup screen 19: an unknown address, or a case that is not there (RF-16)
+// An unknown address, or a case that is not there (RF-14, RF-16 · mockup screen 19)
 export function NotFoundScreen({
   title = 'No encontramos esta página',
   text = 'Puede que la dirección esté mal escrita o que ya no exista. Tus casos siguen donde los dejaste.',

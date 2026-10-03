@@ -8,7 +8,7 @@ import {
   ariaFor,
   fieldClass,
   inputClass,
-} from '@/components/FormField'
+} from '@/components/common/FormField'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -19,7 +19,8 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { type Case, useSaveCase } from '@/hooks/useCases'
+import { useSaveCase } from '@/hooks/useCases'
+import type { Case } from '@/lib/cases'
 import { showFieldErrors } from '@/lib/formErrors'
 import { notifyError } from '@/lib/notify'
 import {
@@ -32,8 +33,8 @@ import {
 } from '@/lib/schemas'
 import { cn } from '@/lib/utils'
 
-// RF-16 · one dialog for creating (mockup screen 7) and editing (screen 15): without a case
-// it creates, with one it edits. The status is not edited here.
+// One dialog for creating and editing: without a case it creates, with one it edits. The
+// status is not edited here (RF-16 · mockup screens 7 and 15).
 export function CaseFormDialog({
   item,
   open,
@@ -98,8 +99,8 @@ function CaseForm({
     control,
     name: ['title', 'description'],
   })
-  // RF-16 · compared as they would be sent — trimmed — so an added space is not a change.
-  // An unchanged edit would still move the case to the top of the list.
+  // Compared as they would be sent — trimmed — so an added space is not a change. An
+  // unchanged edit would still move the case to the top of the list (RF-16).
   const unchanged =
     !!item &&
     title.trim() === item.title &&
@@ -109,7 +110,7 @@ function CaseForm({
     try {
       const saved = await save.mutateAsync(values)
       onDone()
-      // RF-16 · creating opens the new case, where the evidence is attached
+      // Creating opens the new case, where the evidence is attached (RF-16)
       if (!item) router.push(`/cases/${saved.id}`)
     } catch (error) {
       if (!showFieldErrors(error, CASE_FIELDS, form)) notifyError(error)
@@ -174,7 +175,7 @@ function CaseForm({
   )
 }
 
-// RF-16 · counted as the rule counts it (lib/schemas.ts); red past the limit
+// Counted as the rule counts it (lib/schemas.ts); red past the limit (RF-16)
 function CharCount({ value, max }: { value: string; max: number }) {
   const count = characterCount(value.trim())
   return (

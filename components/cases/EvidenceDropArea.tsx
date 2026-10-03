@@ -2,7 +2,7 @@
 
 import { CloudUpload } from 'lucide-react'
 import { useState } from 'react'
-import { ariaFor, FieldError } from '@/components/FormField'
+import { ariaFor, FieldError } from '@/components/common/FormField'
 import { ALLOWED_FILES, FILE_ACCEPT, MAX_FILE_BYTES } from '@/lib/files'
 import { formatSize } from '@/lib/format'
 import { cn } from '@/lib/utils'

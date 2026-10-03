@@ -6,9 +6,9 @@ English.
 
 | | |
 |---|---|
-| **Application** | `<PRODUCTION URL>` |
-| **API** | `<API PRODUCTION URL>` · [repository](https://github.com/VaneeRivass/evidence-manager-api) |
-| **Demo account** | `<EMAIL>` / `<PASSWORD>` |
+| **Application** | Not deployed yet |
+| **API** | [repository](https://github.com/VaneeRivass/evidence-manager-api) |
+| **Demo account** | Created on the API side (see its README) |
 
 ---
 
@@ -24,6 +24,23 @@ English.
 | Notices | sonner |
 | Tests | Vitest · Testing Library |
 | Deployment | Vercel |
+
+---
+
+## How to read this repository
+
+Everything is English except the text a person reads, which is Spanish. Two conventions appear
+in the code and its comments:
+
+| In the code | Means |
+|---|---|
+| `RF-xx`, `RNF-xx` | A requirement in `docs/requirements.md` (this app) or in the API repository's. The sentence around the id explains the behaviour; the id is only the pointer |
+| «mockup screen N» | Screen N of `docs/mockup.html`, the design the interface follows |
+
+A reading order that follows the data, for someone new to the framework: `app/(app)/cases/page.tsx`
+composes the screen → `components/cases/CaseList.tsx` picks one of its states → `hooks/useCases.ts`
+asks for the data → `lib/api.ts` speaks HTTP. For the evidence flow, `components/cases/EvidencePanel.tsx`
+→ `hooks/useFileUpload.ts`. The architecture itself is decided in `docs/adr/0007`.
 
 ---
 
@@ -112,11 +129,14 @@ app/
   (app)/cases · cases/[id]
 components/
   ui/            shadcn, copied in. Not linted, not reformatted
-  cases/         domain components
+  common/        FormField, StatePanel, LoadError, SkeletonBar, BackButton, Brand
+  app/           TopBar
+  auth/ cases/   domain components
 hooks/
-  useCases · useFileUpload · useSession
+  useCase · useCases · useFileUpload · useSession
 lib/
-  api.ts         the only place that makes HTTP requests
+  api.ts         the only place that makes HTTP requests; it returns the body, not AxiosResponse
+  cases.ts       the Case type and the list envelope
   schemas.ts     Zod, mirroring the API
   messages.es.ts error code → Spanish text
 proxy.ts         route guard. At the root, a sibling of app/
@@ -155,7 +175,7 @@ npm run build          # a build that fails here would fail on Vercel
 npm start
 npm test
 npm run lint
-npx tsc --noEmit
+npm run typecheck
 
 npx shadcn@latest add button dialog input   # copies the component into components/ui/
 ```
@@ -179,21 +199,23 @@ npx shadcn@latest add button dialog input   # copies the component into componen
 **Tool:** Claude Code (Claude Opus).
 
 **What it produced:**
-- First drafts of the documentation and the architecture decision
-- Scaffolding: configuration files, continuous integration workflow
-- `<COMPLETE: which parts of the code>`
+- First drafts of the documentation and the architecture decision (ADR-0007)
+- Scaffolding: the configuration files and the continuous integration workflow
+- The client — `lib/api.ts`, the Zod schemas, `lib/messages.es.ts`, the hooks, the
+  components, the route guard and the tests — explained and reviewed as it was written
 
 **What I wrote or rewrote:**
-- `<COMPLETE>`
+- The requirements and the error contract the code cites (`RF-13`…`RF-23`)
+- The corrections below, and the readability pass this branch carries
 
 **An error it introduced, and how it was corrected:**
-- `<COMPLETE with one from the development log>`
+- The route guard was first written as `middleware.ts`, the pre-16 convention. Next 16
+  renamed it to `proxy.ts`; the file and its function were renamed and the dev server's
+  deprecation warning disappeared.
 
 Two caught during design, both of which would have failed silently rather than loudly:
 
 | What it claimed | Why it was wrong |
 |---|---|
 | `NEXT_PUBLIC_API_URL` as the proxy destination | That prefix publishes the value in the browser bundle. The rewrite runs on the server; the variable must not be public |
-| `proxy.ts` inside `app/` | Next does not run it there. No error is raised — the route guard simply never executes |
-
-`<KEEP ADDING as they appear during development>`
+| `middleware.ts` inside `app/` | Next does not run it there. No error is raised — the route guard simply never executes. It also had to be renamed to `proxy.ts` for Next 16 |

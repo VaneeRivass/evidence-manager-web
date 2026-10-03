@@ -1,4 +1,4 @@
-import { Brand } from '@/components/Brand'
+import { Brand } from '@/components/common/Brand'
 
 // The two-column frame shared by sign-in and registration: mockup screens 1 and 2.
 // The blobs are decoration only, and stop for anyone who asked for reduced motion.

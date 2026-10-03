@@ -1,17 +1,19 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { LoadError } from '@/components/LoadError'
+import { LoadError } from '@/components/common/LoadError'
 import { useCases } from '@/hooks/useCases'
 import { toApiError } from '@/lib/api'
-import { type CaseStatus, readFilters } from '@/lib/caseFilters'
+import { readFilters } from '@/lib/caseFilters'
+import type { CaseStatus } from '@/lib/cases'
 import { CaseFilters } from './CaseFilters'
-import { CaseListEmpty, CaseListSkeleton } from './CaseListStates'
 import { CaseTable } from './CaseTable'
+import { CaseTableSkeleton } from './CaseTableSkeleton'
+import { CasesEmpty } from './CasesEmpty'
 import { NewCaseButton } from './NewCaseButton'
 
-// RF-15 · the list: the filters from the address, then exactly one of loading, error,
-// empty or the table
+// The list: the filters from the address, then exactly one of loading, error, empty or the
+// table (RF-15).
 export function CaseList() {
   const filters = readFilters(useSearchParams())
   const cases = useCases(filters)
@@ -47,7 +49,7 @@ function Body({
 }) {
   // Retrying after an error shows the skeleton, so the button visibly does something
   if (cases.isPending || (cases.isError && cases.isFetching)) {
-    return <CaseListSkeleton />
+    return <CaseTableSkeleton />
   }
 
   if (cases.isError) {
@@ -61,7 +63,7 @@ function Body({
   }
 
   const { items, total } = cases.data
-  if (items.length === 0) return <CaseListEmpty status={status} />
+  if (items.length === 0) return <CasesEmpty status={status} />
 
   return (
     <>

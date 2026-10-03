@@ -3,8 +3,8 @@ import { type FormErrorTarget, showFieldErrors } from '@/lib/formErrors'
 import { message } from '@/lib/messages.es'
 import { CREDENTIAL_FIELDS, type Credentials } from '@/lib/schemas'
 
-// RF-18 · the errors the sign-in forms show themselves. False for any other: the caller
-// shows a notice.
+// The errors the sign-in forms show themselves. False for any other: the caller shows a
+// notice (RF-18).
 export function showAuthError(
   error: unknown,
   form: FormErrorTarget<Credentials>,
