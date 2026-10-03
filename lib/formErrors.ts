@@ -7,8 +7,8 @@ export type FormErrorTarget<T extends FieldValues> = Pick<
   'setError' | 'setFocus'
 >
 
-// RF-18 · a VALIDATION_ERROR's messages under the form's own fields, focusing the first so a
-// screen reader reads it there. False when none is the form's: the caller shows a notice.
+// A VALIDATION_ERROR's messages under the form's own fields, focusing the first so a screen
+// reader reads it there. False when none is the form's: the caller shows a notice (RF-18).
 export function showFieldErrors<T extends FieldValues>(
   error: unknown,
   fields: readonly Path<T>[],

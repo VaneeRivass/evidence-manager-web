@@ -1,4 +1,4 @@
-import type { CaseStatus } from '@/lib/caseFilters'
+import type { CaseStatus } from '@/lib/cases'
 import { fileLabel } from '@/lib/files'
 import { cn } from '@/lib/utils'
 

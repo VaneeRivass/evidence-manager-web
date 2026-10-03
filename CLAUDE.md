@@ -21,6 +21,10 @@ architecture decisions span both:
 
 **Do not answer from memory about requirements or decisions: read them.**
 
+In code and comments, `RF-xx` / `RNF-xx` point at those requirements and «mockup screen N» points
+at `docs/mockup.html`. A sentence around an id must stand on its own: the id is a pointer, never
+the explanation. Prose first, the id as a trailing reference.
+
 ---
 
 ## Stack
@@ -54,15 +58,18 @@ app/
                          maps where every failed request ends up (RF-14, RF-19)
 components/
   ui/                    shadcn — do not lint, do not reformat
-  FormField.tsx          label, input and the error under it — every form
-  StatePanel.tsx         empty, error and not-found screens; LoadError.tsx builds on it
+  common/                FormField, StatePanel, LoadError, SkeletonBar, BackButton, Brand
+  app/                   TopBar
   auth/ cases/           domain components
 hooks/
-  useAuth.ts             TanStack Query. The only place that knows API routes
-  useCases.ts
+  useSession.ts          TanStack Query. Auth routes: who is signed in, sign in and out
+  useCase.ts             one case
+  useCases.ts            the list and every change to a case
   useFileUpload.ts       the three upload steps
 lib/
-  api.ts                 the ONLY place that makes HTTP requests (axios)
+  api.ts                 the ONLY place that makes HTTP requests (axios), and the only
+                         place that unwraps `.data`: hooks get the body, not AxiosResponse
+  cases.ts               the Case type and the list envelope (the domain, not a hook)
   schemas.ts             Zod
   files.ts               the evidence's allowed types and size, copied from the API (RF-17)
   messages.es.ts         error code → Spanish text
@@ -194,7 +201,15 @@ Few and well chosen, on what a person sees and on rules that are cheap to break:
 | An action without a form gets a notice; a 401 signs out with none | `app/providers.test.tsx` |
 | A form shows a field error under its field and anything else as a notice, and cannot be closed while saving | `CaseFormDialog.test.tsx` |
 | The rules copied from the API: file type and size at the limit, title and description lengths, password bytes | `lib/files.test.ts`, `lib/schemas.test.ts` |
-| Sizes as a person reads them | `lib/format.test.ts` |
+| Sizes and dates as a person reads them | `lib/format.test.ts` |
+| The API client returns the body and names its failures | `lib/api.test.ts` |
+| The address is the filters' home: read and written back | `lib/caseFilters.test.ts` |
+| A validation error lands on the form's own field, and nowhere else | `lib/formErrors.test.ts` |
+| The guard's redirects, seen from a bare request | `proxy.test.ts` |
+| The upload's three steps and the case they leave in the cache | `hooks/useFileUpload.test.tsx` |
+| The case page: loading, the case, not found and an error | `CaseDetail.test.tsx` |
+| Sign in and registration, and where each failure lands | `AuthForm.test.tsx` |
+| A notice carries the code, and a 401 gets none | `lib/notify.test.ts` |
 
 The API client is substituted with `vi.mock()`. MSW would be the canonical choice and is
 noted in the README as the next increment; setting it up costs more than it returns here.

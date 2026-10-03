@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Case } from '@/hooks/useCases'
+import type { Case } from '@/lib/cases'
 import { api, ApiError } from '@/lib/api'
 import { CaseList } from './CaseList'
 
@@ -49,7 +49,7 @@ describe('CaseList', () => {
   })
 
   it('says there are no cases yet when the list is empty', async () => {
-    get.mockResolvedValue({ data: { items: [], total: 0 } })
+    get.mockResolvedValue({ items: [], total: 0 })
 
     renderList()
 
@@ -70,13 +70,11 @@ describe('CaseList', () => {
       updatedAt: '2026-09-24T10:00:00.000Z',
     } satisfies Omit<Case, 'id' | 'title'>
     get.mockResolvedValue({
-      data: {
-        items: [
-          { ...item, id: '1', title: 'Cargo duplicado en la tarjeta' },
-          { ...item, id: '2', title: 'Robo de bicicleta', status: 'CLOSED' },
-        ],
-        total: 2,
-      },
+      items: [
+        { ...item, id: '1', title: 'Cargo duplicado en la tarjeta' },
+        { ...item, id: '2', title: 'Robo de bicicleta', status: 'CLOSED' },
+      ],
+      total: 2,
     })
 
     renderList()

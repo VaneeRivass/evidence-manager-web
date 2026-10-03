@@ -19,15 +19,15 @@ const messages: Record<string, (params: Params) => string> = {
   VALIDATION_ERROR: () => 'Revisa los datos: hay alguno que no es válido.',
   UNAUTHENTICATED: () => 'Tu sesión ha caducado. Vuelve a entrar.',
 
-  // RF-07 · one sentence for both: a stranger cannot tell a case exists (RF-16)
+  // One sentence for both: a stranger cannot tell a case exists (RF-07, RF-16)
   CASE_NOT_FOUND: () => caseGone,
   CASE_FORBIDDEN: () => caseGone,
 
   EMAIL_TAKEN: () => 'Ya existe una cuenta con este correo.',
   INVALID_CREDENTIALS: () => 'El correo o la contraseña no son correctos.',
 
-  // RF-17 · with a name, the browser rejected it (mockup screen 12); without one, the API
-  // did, with its own list (RF-10)
+  // With a name, the browser rejected it (mockup screen 12); without one, the API did, with
+  // its own list (RF-10, RF-17)
   FILE_TYPE_NOT_ALLOWED: ({ name, allowed }) =>
     `${name ? `«${name}»` : 'Este tipo de archivo'} no se puede adjuntar: solo se admiten ${
       allowed
@@ -44,10 +44,10 @@ const messages: Record<string, (params: Params) => string> = {
       : `El archivo supera el máximo de ${formatSize(Number(max))}.`,
   FILE_ALREADY_ATTACHED: () =>
     'Este caso ya tiene un archivo, y la evidencia no se puede cambiar.',
-  // RF-17 · interrupted: the upload to storage itself (lib/api.ts)
+  // Interrupted: the upload to storage itself, in lib/api.ts (RF-17)
   UPLOAD_FAILED: () =>
     'La subida se interrumpió. Revisa tu conexión e inténtalo de nuevo.',
-  // RF-17 · could not verify: one sentence, as the person's fix is the same
+  // Could not verify: one sentence, as the person's fix is the same (RF-17)
   FILE_NOT_UPLOADED: () => couldNotVerify,
   FILE_KEY_MISMATCH: () => couldNotVerify,
   FILE_REJECTED: () =>
@@ -61,6 +61,13 @@ const messages: Record<string, (params: Params) => string> = {
 
 // The label of the code shown under an operation error's message (mockup screen 24)
 export const CODE_LABEL = 'Código de error'
+
+// Success texts are composed here too, for the same reason as the errors: the text a person
+// reads is decided in this file and nowhere else (RF-13, RF-16).
+export const successMessages = {
+  registered: 'Cuenta creada. Ya puedes entrar.',
+  caseDeleted: 'Caso eliminado',
+}
 
 // The five codes only a bug here can trigger (RF-19): retrying would fail the same way, so
 // it asks for the code to be passed on

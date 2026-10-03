@@ -2,11 +2,12 @@
 
 import { Check, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { type Case, useDownloadFile } from '@/hooks/useCases'
+import { useDownloadFile } from '@/hooks/useCases'
+import type { Case } from '@/lib/cases'
 import { describeFile } from '@/lib/files'
 import { EvidenceFileSummary } from './EvidenceFileSummary'
 
-// Mockup screen 13 · the API verified the file before storing it (RF-11), so it says so
+// The API verified the file before storing it, so it says so (RF-11 · mockup screen 13)
 export function EvidenceAttached({ item }: { item: Case }) {
   const download = useDownloadFile(item.id)
 

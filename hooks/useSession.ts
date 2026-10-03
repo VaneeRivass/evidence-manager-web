@@ -13,33 +13,32 @@ export function useLogin() {
 
   return useMutation({
     meta: { formHandlesErrors: true }, // AuthForm.tsx shows its errors
-    mutationFn: async (credentials: Credentials) =>
-      (await api.post<User>('/auth/login', credentials)).data,
+    mutationFn: (credentials: Credentials) =>
+      api.post<User>('/auth/login', credentials),
     onSuccess: (user) => queryClient.setQueryData(['session'], user),
   })
 }
 
-// RF-13 · registering does not sign the person in: they sign in themselves
+// Registering does not sign the person in: they sign in themselves (RF-13)
 export function useRegister() {
   return useMutation({
     meta: { formHandlesErrors: true }, // AuthForm.tsx shows its errors
-    mutationFn: async (credentials: Credentials) => {
-      await api.post('/auth/register', credentials)
-    },
+    mutationFn: (credentials: Credentials) =>
+      api.post('/auth/register', credentials),
   })
 }
 
-// RF-03 · who is signed in: the cookie is httpOnly, so the API says. Asked once — it does
-// not change during a session.
+// Who is signed in: the cookie is httpOnly, so the API says. Asked once — it does not change
+// during a session (RF-03).
 export function useSession() {
   return useQuery({
     queryKey: ['session'],
-    queryFn: async () => (await api.get<User>('/auth/me')).data,
+    queryFn: () => api.get<User>('/auth/me'),
     staleTime: Infinity,
   })
 }
 
-// RF-04 · the sign-out button. If it fails the person stays, and the notice says why.
+// The sign-out button. If it fails the person stays, and the notice says why (RF-04).
 export function useLogout() {
   return useMutation({
     mutationFn: () => api.post('/auth/logout'),

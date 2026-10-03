@@ -19,8 +19,8 @@ pages, nothing to index.
 ## Decision
 
 **Almost everything is a Client Component**, and data is fetched from the browser through a
-server-state library. Only two things run on the server: the route guard in `middleware.ts`
-and the rewrite that proxies API calls.
+server-state library. Only two things run on the server: the route guard in `proxy.ts`
+(Next 16's name for the former `middleware.ts`) and the rewrite that proxies API calls.
 
 Responsibilities are layered:
 

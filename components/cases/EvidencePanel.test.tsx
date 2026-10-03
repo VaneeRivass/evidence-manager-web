@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Case } from '@/hooks/useCases'
+import type { Case } from '@/lib/cases'
 import { api, uploadToStorage } from '@/lib/api'
 import { EvidencePanel } from './EvidencePanel'
 

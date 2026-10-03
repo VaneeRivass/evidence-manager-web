@@ -2,13 +2,13 @@
 
 import { LogOut } from 'lucide-react'
 import Link from 'next/link'
-import { Brand } from '@/components/Brand'
-import { SkeletonBar } from '@/components/SkeletonBar'
+import { Brand } from '@/components/common/Brand'
+import { SkeletonBar } from '@/components/common/SkeletonBar'
 import { Button } from '@/components/ui/button'
-import { useLogout, useSession } from '@/hooks/useAuth'
+import { useLogout, useSession } from '@/hooks/useSession'
 
-// The bar over every private page: who is signed in, and the way out (RF-04). A 401 is
-// not handled here: providers.tsx handles it for every request.
+// The bar over every private page: who is signed in, and the way out. A 401 is not handled
+// here: providers.tsx handles it for every request (RF-04).
 export function TopBar() {
   const session = useSession()
   const logout = useLogout()

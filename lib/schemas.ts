@@ -10,7 +10,7 @@ const EMAIL_MAX = 254
 export const PASSWORD_MIN = 8
 export const PASSWORD_MAX = 72
 
-// RF-01a · trimmed, up to 254 characters, lowercase
+// Trimmed, up to 254 characters, lowercase (RF-01a)
 const email = z
   .string()
   .trim()
@@ -18,8 +18,8 @@ const email = z
   .toLowerCase()
   .pipe(z.email(message('INVALID_FORMAT')))
 
-// RF-01b · the API limits bytes, not characters: «ñ» is 2. TextEncoder counts them as
-// Node's Buffer does.
+// The API limits bytes, not characters: «ñ» is 2. TextEncoder counts them as Node's Buffer
+// does (RF-01b).
 const utf8Length = (value: string) => new TextEncoder().encode(value).length
 
 const newPassword = z
@@ -35,8 +35,8 @@ const newPassword = z
 
 export const registerSchema = z.object({ email, password: newPassword })
 
-// RF-02 · on login the password is only required: one set under an older policy must
-// still sign in
+// On login the password is only required: one set under an older policy must still sign in
+// (RF-02)
 export const loginSchema = z.object({
   email,
   password: z.string().min(1, message('TOO_SHORT', { min: 1 })),
@@ -47,7 +47,7 @@ export type Credentials = z.infer<typeof loginSchema>
 // The form's fields, from the schema itself: where an API error on one of them goes (RF-18)
 export const CREDENTIAL_FIELDS = loginSchema.keyof().options
 
-// RF-05 · the API's rule copied: trimmed, then 1 to the column's size, in characters
+// The API's rule copied: trimmed, then 1 to the column's size, in characters (RF-05)
 export const TITLE_MAX = 120
 export const DESCRIPTION_MAX = 2000
 

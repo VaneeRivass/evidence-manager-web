@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import type { Case } from '@/hooks/useCases'
+import type { Case } from '@/lib/cases'
 import { formatSize, formatWhen } from '@/lib/format'
 import { FileIcon, StatusPill } from './CaseBadges'
 

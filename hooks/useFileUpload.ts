@@ -1,30 +1,28 @@
 import { useState } from 'react'
 import { api, uploadToStorage } from '@/lib/api'
-import { type Case, casePath, useCaseMutation } from './useCases'
+import { type Case, casePath } from '@/lib/cases'
+import { useCaseMutation } from './useCases'
 
-// RF-10 · expiresIn is left out: the link is used at once
+// expiresIn is left out: the link is used at once (RF-10)
 type UploadLink = { uploadUrl: string; key: string }
 
-// RF-17 · three calls, one action: ask for a link, send the file to storage, confirm.
-// `progress` goes 0 → 1 while the file travels; `finishing` is the API verifying it.
+// Three calls, one action: ask for a link, send the file to storage, confirm. `progress` goes
+// 0 → 1 while the file travels; `finishing` is the API verifying it (RF-17).
 export function useFileUpload(id: string) {
   const [progress, setProgress] = useState(0)
 
   const upload = useCaseMutation(async (file: File) => {
     const path = casePath(id)
 
-    const link = (
-      await api.post<UploadLink>(`${path}/file/upload-url`, {
-        fileName: file.name,
-        contentType: file.type,
-        size: file.size,
-      })
-    ).data
+    const link = await api.post<UploadLink>(`${path}/file/upload-url`, {
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+    })
 
     await uploadToStorage(link.uploadUrl, file, setProgress)
 
-    return (await api.post<Case>(`${path}/file/complete`, { key: link.key }))
-      .data
+    return api.post<Case>(`${path}/file/complete`, { key: link.key })
   })
 
   return {

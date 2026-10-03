@@ -9,11 +9,13 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
-import { LoadError } from '@/components/LoadError'
-import { NotFoundScreen } from '@/components/NotFoundScreen'
-import { SkeletonBar } from '@/components/SkeletonBar'
+import { LoadError } from '@/components/common/LoadError'
+import { NotFoundScreen } from '@/components/common/NotFoundScreen'
+import { SkeletonBar } from '@/components/common/SkeletonBar'
 import { Button } from '@/components/ui/button'
-import { type Case, useCase, useCaseStatus } from '@/hooks/useCases'
+import { useCase } from '@/hooks/useCase'
+import { useCaseStatus } from '@/hooks/useCases'
+import type { Case } from '@/lib/cases'
 import { isNotFound, toApiError } from '@/lib/api'
 import { formatDate } from '@/lib/format'
 import { StatusPill } from './CaseBadges'
@@ -26,7 +28,9 @@ const cardClass = 'grid gap-4 rounded-[20px] border bg-card p-6'
 // The case on the left, its evidence on the right — stacked on a phone (mockup screen 8)
 const columnsClass = 'grid items-start gap-5 lg:grid-cols-[1.45fr_1fr]'
 
-// RF-16 · RF-17 · the case page (mockup screens 8 to 14)
+// The case page. Two rules are not obvious: a case the API reports as gone stays gone even
+// if a cached copy exists, and a failed background refresh must not take an on-screen case
+// away (RF-16, RF-17 · mockup screens 8 to 14).
 export function CaseDetail({ id }: { id: string }) {
   const query = useCase(id)
   // Gone is gone, even if an earlier answer is still cached
@@ -62,7 +66,7 @@ function CaseCard({ item }: { item: Case }) {
   const [deleting, setDeleting] = useState(false)
   const open = item.status === 'OPEN'
 
-  // RF-08 · closing and reopening: no confirmation, it can be undone
+  // Closing and reopening: no confirmation, it can be undone (RF-08)
   const toggleStatus = () => status.mutate(open ? 'CLOSED' : 'OPEN')
 
   return (
