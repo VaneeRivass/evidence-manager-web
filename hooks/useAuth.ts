@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import { placedOnCredentialsForm } from '@/lib/formErrors'
 import type { Credentials } from '@/lib/schemas'
 import { goToLogin } from '@/lib/session'
 
@@ -8,16 +7,12 @@ import { goToLogin } from '@/lib/session'
 
 type User = { id: string; email: string }
 
-// The sign-in forms place some errors themselves (showAuthError.ts); any other is a notice
-const credentialErrors = { placedByForm: placedOnCredentialsForm }
-
-// The login already answers who signed in: it seeds the session query, so the top bar
-// does not ask /auth/me again right after
+// The login's answer is who signed in: it seeds the session, so /auth/me is not asked again
 export function useLogin() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    meta: credentialErrors,
+    meta: { formHandlesErrors: true }, // AuthForm.tsx shows its errors
     mutationFn: async (credentials: Credentials) =>
       (await api.post<User>('/auth/login', credentials)).data,
     onSuccess: (user) => queryClient.setQueryData(['session'], user),
@@ -27,16 +22,15 @@ export function useLogin() {
 // RF-13 · registering does not sign the person in: they sign in themselves
 export function useRegister() {
   return useMutation({
-    meta: credentialErrors,
+    meta: { formHandlesErrors: true }, // AuthForm.tsx shows its errors
     mutationFn: async (credentials: Credentials) => {
       await api.post('/auth/register', credentials)
     },
   })
 }
 
-// RF-03 · who is signed in. The cookie cannot be read from here (httpOnly), so the API
-// says. It does not change during a session, so it is asked once; a session that expires
-// is caught by whichever request next answers 401 (providers.tsx).
+// RF-03 · who is signed in: the cookie is httpOnly, so the API says. Asked once — it does
+// not change during a session.
 export function useSession() {
   return useQuery({
     queryKey: ['session'],
@@ -45,13 +39,9 @@ export function useSession() {
   })
 }
 
-// RF-04 · the API clears the cookie, then the session is left (lib/session.ts). A 401 here —
-// the session had already expired — ends in the same place (providers.tsx).
+const logout = () => api.post('/auth/logout')
+
+// RF-04 · the sign-out button. If it fails the person stays, and the notice says why.
 export function useLogout() {
-  return useMutation({
-    mutationFn: async () => {
-      await api.post('/auth/logout')
-    },
-    onSuccess: goToLogin,
-  })
+  return useMutation({ mutationFn: logout, onSuccess: goToLogin })
 }

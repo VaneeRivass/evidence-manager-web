@@ -39,9 +39,8 @@ export const isUnauthenticated = (error: unknown): boolean =>
 export const isNetworkError = (error: unknown): boolean =>
   error instanceof ApiError && error.code === 'NETWORK_ERROR'
 
-// The resource is not there for this person: missing, someone else's, or a malformed id
-// the API rejects before looking. One answer for all three, so a stranger cannot tell
-// that something exists (RF-16).
+// Missing, someone else's, or a malformed id: one answer for all three, so a stranger
+// cannot tell that a case exists (RF-16)
 const NOT_FOUND = ['CASE_NOT_FOUND', 'CASE_FORBIDDEN', 'VALIDATION_ERROR']
 export const isNotFound = (error: unknown): boolean =>
   error instanceof ApiError && NOT_FOUND.includes(error.code)
@@ -60,11 +59,8 @@ api.interceptors.response.use(
   },
 )
 
-// RF-17 · the file, straight from the browser to storage with the link the API signed.
-// Plain axios, NOT the `api` instance: storage is not our API, and its interceptor would
-// read an XML error as a missing response. withCredentials stays false, so the session
-// cookie never travels to Cloudflare. Any failure — a dropped connection, a 403 for an
-// expired link — is UPLOAD_FAILED: storage knows none of our codes (requirements, RF-19).
+// RF-17 · the file goes straight to storage. Plain axios, not `api`: storage is not our API
+// and the session cookie must never reach it. Any failure is UPLOAD_FAILED (RF-19).
 export async function uploadToStorage(
   uploadUrl: string,
   file: File,

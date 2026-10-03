@@ -314,10 +314,11 @@ Only two actions announce success: deleting a case (*Caso eliminado*), because t
 leaves the screen, and creating an account (*Cuenta creada. Ya puedes entrar.*), because it
 lands on the sign-in page. Every other change is already visible where it happened.
 
-**Every failed action reaches the notice from one place**, the query client's mutation
-cache, so a new action cannot forget to show its error, and it shows even if the screen
-that started the action is gone. A form only says which errors it places itself — on a
-field, or inside the form — and every other error is a notice like the rest.
+**Who shows a failed action's error.** A form shows its own: under the field when the API
+names one of its fields, as a notice otherwise. While a form's request is on its way the
+form cannot be closed, so the answer always finds it on screen. Every action without a
+form — closing a case, deleting it, attaching, downloading, signing out — gets its notice
+from one place, the query client's mutation cache, so a new action cannot forget it.
 
 ---
 

@@ -1,16 +1,15 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { useSaveCase } from '@/hooks/useCases'
+import { useCaseStatus, useSaveCase } from '@/hooks/useCases'
 import { api, ApiError } from '@/lib/api'
+import { goToLogin } from '@/lib/session'
 import { Providers } from './providers'
 
-// RF-19 · every failed action gets its notice from one place. A form only says which errors
-// it places itself; the rest are notices — even once the form has closed, the case the
-// review of #9 found.
+// RF-19 · an action without a form gets its notice from here. RF-14 · a 401 signs out.
 vi.mock('@/lib/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api')>()
-  return { ...actual, api: { post: vi.fn() } }
+  return { ...actual, api: { post: vi.fn(), patch: vi.fn() } }
 })
 
 vi.mock('sonner', async (importOriginal) => {
@@ -18,10 +17,16 @@ vi.mock('sonner', async (importOriginal) => {
   return { ...actual, toast: { error: vi.fn(), success: vi.fn() } }
 })
 
-const post = vi.mocked(api.post)
+vi.mock('@/lib/session', () => ({ goToLogin: vi.fn() }))
 
-// The new-case form, reduced to its button: the same mutation, with its meta
-function SaveButton() {
+// The case page's «Cerrar caso», reduced to its button
+function CloseCaseButton() {
+  const status = useCaseStatus('c1')
+  return <button onClick={() => status.mutate('CLOSED')}>Cerrar caso</button>
+}
+
+// A form's save, without the form: its errors are the form's to show
+function SaveWithoutForm() {
   const save = useSaveCase()
   return (
     <button onClick={() => save.mutate({ title: 'Robo', description: 'x' })}>
@@ -30,25 +35,20 @@ function SaveButton() {
   )
 }
 
-function save() {
-  const view = render(
-    <Providers>
-      <SaveButton />
-    </Providers>,
-  )
-  fireEvent.click(screen.getByRole('button', { name: 'Crear caso' }))
-  return view
+function press(name: string, button: React.ReactNode) {
+  render(<Providers>{button}</Providers>)
+  fireEvent.click(screen.getByRole('button', { name }))
 }
 
-describe('Providers · the notice for a failed action', () => {
+describe('Providers · a failed request', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('shows the code when the request fails', async () => {
-    post.mockRejectedValue(new ApiError('NETWORK_ERROR'))
+  it('shows a notice with the code for an action without a form', async () => {
+    vi.mocked(api.patch).mockRejectedValue(new ApiError('NETWORK_ERROR'))
 
-    save()
+    press('Cerrar caso', <CloseCaseButton />)
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledOnce())
     expect(vi.mocked(toast.error).mock.calls[0][0]).toMatch(
@@ -56,29 +56,21 @@ describe('Providers · the notice for a failed action', () => {
     )
   })
 
-  it('stays quiet for an error the form places under its field', async () => {
-    post.mockRejectedValue(
-      new ApiError('VALIDATION_ERROR', {}, [
-        { field: 'title', code: 'TOO_LONG' },
-      ]),
-    )
+  it('leaves the notice to the form when the form shows its own errors', async () => {
+    vi.mocked(api.post).mockRejectedValue(new ApiError('NETWORK_ERROR'))
 
-    save()
-    await waitFor(() => expect(post).toHaveBeenCalled())
-    await act(async () => {})
+    press('Crear caso', <SaveWithoutForm />)
 
+    await waitFor(() => expect(api.post).toHaveBeenCalled())
     expect(toast.error).not.toHaveBeenCalled()
   })
 
-  it('still shows it when the form closed before the answer arrived', async () => {
-    const answer = Promise.withResolvers<never>()
-    post.mockReturnValue(answer.promise)
+  it('on a 401, goes to the login with no notice', async () => {
+    vi.mocked(api.patch).mockRejectedValue(new ApiError('UNAUTHENTICATED'))
 
-    const view = save()
-    // Cancelar while the request is on its way: the form is gone
-    view.rerender(<Providers>{null}</Providers>)
-    await act(async () => answer.reject(new ApiError('NETWORK_ERROR')))
+    press('Cerrar caso', <CloseCaseButton />)
 
-    await waitFor(() => expect(toast.error).toHaveBeenCalledOnce())
+    await waitFor(() => expect(goToLogin).toHaveBeenCalledOnce())
+    expect(toast.error).not.toHaveBeenCalled()
   })
 })

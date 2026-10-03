@@ -15,9 +15,8 @@ import { NewCaseButton } from './NewCaseButton'
 export function CaseList() {
   const filters = readFilters(useSearchParams())
   const cases = useCases(filters)
-  // With no case at all, the empty state's «Crear mi primer caso» is the only way in — two
-  // buttons doing the same would compete (mockup screen 5). A filter that empties the list
-  // keeps it: that empty state offers no button.
+  // With no case at all, the empty state's «Crear mi primer caso» is the only button for it
+  // (mockup screen 5). A filtered empty list offers none, so the header keeps its own.
   const firstCase = cases.data?.total === 0 && !filters.status
 
   return (
