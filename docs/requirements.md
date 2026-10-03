@@ -20,7 +20,7 @@ exactly one file.
 | ID | Requirement |
 |---|---|
 | **RF-13** | Registration and login screens showing errors **next to the field that caused them**, with the message from the API. Registering **does not sign the person in**: they sign in themselves |
-| **RF-14** | Private routes: with no session, redirect to login **before the page is served**. No flash of protected content. Everything is private except the login and registration screens. An address that does not exist shows a not-found page **inside** the private layout |
+| **RF-14** | Private routes: with no session, redirect to login **before the page is served**. No flash of protected content. Everything is private except the login and registration screens. An address that does not exist shows a not-found page **with the private top bar** |
 | **RF-15** | The list renders one of **three distinct states**: **empty**, **loading**, **error** |
 | **RF-16** | Create, edit, change status and delete from the interface |
 | **RF-17** | Attach evidence by dropping a file or picking it, and download it. A chosen file is **shown for confirmation before anything is sent**, because evidence cannot be replaced once attached. The upload is **one action with one progress bar**: the three calls behind it (request link → upload → confirm) are never shown as steps |
@@ -66,7 +66,7 @@ add it.
 |---|---|---|
 | `/` | `/cases` | `/login` |
 | `/login`, `/register` | `/cases` — to see them, sign out first | The form |
-| An address that does not exist | The not-found page, inside the private layout | `/login` |
+| An address that does not exist | The not-found page, with the top bar | `/login` |
 
 **The not-found page keeps the top bar** — email and sign-out — so the person sees their
 session is intact and the application is not broken. It says what happened in plain words,
@@ -83,26 +83,21 @@ cookie was made up — gets past it: the page's frame is served, its first reque
 `401`, and the person is sent to the login. What shows for that moment is the empty frame,
 never data: every request for data answers `401` too.
 
-**Any `401` from the API, from any screen, sends the person to the login** — one handler for
-the whole application, not a rule per screen. It is a full page load rather than a move
-within the application: the page is dropped and, with it, everything the client kept in
-memory. A session can also expire while a tab stays open; the next request finds out.
-Accepted: a normal session expires together with its cookie, which the browser then deletes
-by itself.
+**Any `401` from the API, from any screen, signs the person out** — one handler for the
+whole application, not a rule per screen. It goes to the login with a full page load
+rather than a move within the application: the page is dropped and, with it, everything
+the client kept in memory. A session can also expire while a tab stays open; the next
+request finds out.
 
-**On `/login` and `/register` the guard does ask the API**, and only there, only when a
-cookie is present. Redirecting a signed-in person to `/cases` on the strength of a cookie
-alone would loop with the rule above: `/cases` sends a rejected cookie to the login, the
-login sends the cookie back to `/cases`. The client cannot break the loop — the cookie is
-`httpOnly` — and the API's sign-out needs a valid session. So the guard calls `/auth/me`:
-valid, it redirects to `/cases`; rejected, it **deletes the cookie** and serves the form.
-It can, because it runs on Next's server, where `httpOnly` does not apply. The extra request
-happens only when someone holding a cookie opens those two screens.
+**Clearing the cookie is what prevents a loop.** The guard sends anyone with a cookie away
+from `/login` to `/cases`. Were a rejected cookie left in place, `/cases` would send it to the
+login and the login back to `/cases`. The client cannot delete an `httpOnly` cookie itself,
+so the API does: a `401` for a rejected cookie arrives with that cookie already cleared (API
+`RF-03`). The guard never asks the API anything: it only looks at whether the cookie is there.
 
-**Signing out** (`RF-04`) asks the API to clear the cookie and returns to the login with a
-full page load. That load is what empties the client's cache, so the next person on the
-same browser never sees the previous one's data — whether signing out succeeded or the
-session had already expired.
+**Signing out** (`RF-04`) is the same path: the API clears the cookie and a full page load
+returns to the login. That load is what empties the client's cache, so the next person on
+the same browser never sees the previous one's data.
 
 ### RF-15 · The three states
 
