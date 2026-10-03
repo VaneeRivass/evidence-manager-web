@@ -20,13 +20,14 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { type Case, useSaveCase } from '@/hooks/useCases'
-import { toApiError } from '@/lib/api'
-import { placeFieldErrors } from '@/lib/formErrors'
+import { showFieldErrors } from '@/lib/formErrors'
+import { notifyError } from '@/lib/notify'
 import {
   CASE_FIELDS,
   type CaseInput,
   caseSchema,
   DESCRIPTION_MAX,
+  characterCount,
   TITLE_MAX,
 } from '@/lib/schemas'
 import { cn } from '@/lib/utils'
@@ -42,8 +43,15 @@ export function CaseFormDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const save = useSaveCase(item)
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    // Locked while saving: the answer always finds the form on screen (Esc and a click
+    // outside are ignored; Cancelar is disabled)
+    <Dialog
+      open={open}
+      onOpenChange={(next) => !save.isPending && onOpenChange(next)}
+    >
       <DialogContent
         // Editing has no description line: say so, as Radix asks, rather than leave it
         // looking for one. Creating keeps Radix's own wiring to DialogDescription.
@@ -54,15 +62,22 @@ export function CaseFormDialog({
         className="gap-5 rounded-[20px] p-6 sm:max-w-md"
       >
         {/* Inside the content, so the form mounts afresh on every opening */}
-        <CaseForm item={item} onDone={() => onOpenChange(false)} />
+        <CaseForm item={item} save={save} onDone={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>
   )
 }
 
-function CaseForm({ item, onDone }: { item?: Case; onDone: () => void }) {
+function CaseForm({
+  item,
+  save,
+  onDone,
+}: {
+  item?: Case
+  save: ReturnType<typeof useSaveCase>
+  onDone: () => void
+}) {
   const router = useRouter()
-  const mutation = useSaveCase(item)
 
   const form = useForm<CaseInput>({
     resolver: zodResolver(caseSchema),
@@ -90,19 +105,16 @@ function CaseForm({ item, onDone }: { item?: Case; onDone: () => void }) {
     title.trim() === item.title &&
     description.trim() === item.description
 
-  const onSubmit = handleSubmit((values) =>
-    mutation.mutate(values, {
-      onSuccess: (saved) => {
-        onDone()
-        // RF-16 · creating opens the new case, where the evidence is attached
-        if (!item) router.push(`/cases/${saved.id}`)
-      },
-      // Any other error is a notice, from the query client (providers.tsx)
-      onError: (error) => {
-        placeFieldErrors(toApiError(error), CASE_FIELDS, form)
-      },
-    }),
-  )
+  const onSubmit = handleSubmit(async (values) => {
+    try {
+      const saved = await save.mutateAsync(values)
+      onDone()
+      // RF-16 · creating opens the new case, where the evidence is attached
+      if (!item) router.push(`/cases/${saved.id}`)
+    } catch (error) {
+      if (!showFieldErrors(error, CASE_FIELDS, form)) notifyError(error)
+    }
+  })
 
   return (
     <form noValidate onSubmit={onSubmit} className="grid gap-5">
@@ -150,11 +162,11 @@ function CaseForm({ item, onDone }: { item?: Case; onDone: () => void }) {
 
       <div className="flex justify-end gap-2.5">
         <DialogClose asChild>
-          <Button type="button" variant="outline">
+          <Button type="button" variant="outline" disabled={save.isPending}>
             Cancelar
           </Button>
         </DialogClose>
-        <Button type="submit" disabled={mutation.isPending || unchanged}>
+        <Button type="submit" disabled={save.isPending || unchanged}>
           {item ? 'Guardar cambios' : 'Crear caso'}
         </Button>
       </div>
@@ -162,10 +174,9 @@ function CaseForm({ item, onDone }: { item?: Case; onDone: () => void }) {
   )
 }
 
-// RF-16 · how much is written, counted as the rule counts it: trimmed, in characters — an
-// emoji is 1, though its .length is 2 (lib/schemas.ts). Red past the limit.
+// RF-16 · counted as the rule counts it (lib/schemas.ts); red past the limit
 function CharCount({ value, max }: { value: string; max: number }) {
-  const count = [...value.trim()].length
+  const count = characterCount(value.trim())
   return (
     <span
       className={cn(

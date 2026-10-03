@@ -4,9 +4,7 @@ import { BackButton } from '@/components/BackButton'
 import { StatePanel } from '@/components/StatePanel'
 import { Button } from '@/components/ui/button'
 
-// RF-14 · mockup screen 19. Rendered inside the private layout, so the top bar confirms
-// the session is intact. Never a redirect without warning. The case page uses it too, for
-// a case that does not exist or is not the person's (RF-16).
+// RF-14 · mockup screen 19: an unknown address, or a case that is not there (RF-16)
 export function NotFoundScreen({
   title = 'No encontramos esta página',
   text = 'Puede que la dirección esté mal escrita o que ya no exista. Tus casos siguen donde los dejaste.',

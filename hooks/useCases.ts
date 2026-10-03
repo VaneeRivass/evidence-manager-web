@@ -6,7 +6,6 @@ import {
 } from '@tanstack/react-query'
 import { api, isNetworkError } from '@/lib/api'
 import type { CaseFilters, CaseStatus } from '@/lib/caseFilters'
-import { placedOnCaseForm } from '@/lib/formErrors'
 import type { CaseInput } from '@/lib/schemas'
 
 // The only place that knows the case routes. How a request is made lives in lib/api.ts.
@@ -50,16 +49,12 @@ export function useCase(id: string) {
   })
 }
 
-// After any change every list is stale, whatever its filters: ['cases'] is the prefix of
-// all their keys. On creating, the list is still on screen and asks again at once — so the
-// new case is already there on the way back. The case takes the API's answer, so it shows
-// at once; the case page may still ask for it once more, as data is stale from the start.
-// After a failed change the case may have changed under the person — another window
-// attached a file, or deleted the case — so the case page asks for it again and shows what
-// is true: a 404 turns it into «No encontramos este caso» (RF-16). Only an open page
-// refetches. Not on NETWORK_ERROR: nothing reached the server, so nothing changed, and asking
-// again would only fail the same way. The notice is not here: every failed
-// action gets it from the query client (providers.tsx).
+// Every change to a case goes through here.
+// · Success: the case takes the API's answer, and every list (any filter: ['cases'] is the
+//   prefix of all their keys) is asked again.
+// · Failure: the case may have changed elsewhere — deleted in another window — so it is asked
+//   again (RF-16). Not after NETWORK_ERROR: nothing reached the server.
+// The notice is not here: providers.tsx shows it for every failed action.
 export function useCaseMutation<Variables>(
   mutationFn: (variables: Variables) => Promise<Case>,
   meta?: MutationMeta,
@@ -81,9 +76,8 @@ export function useCaseMutation<Variables>(
   })
 }
 
-// RF-05 · RF-08 · the dialog's title and description: a new case without one, an edit with
-// it. One mutation, so the form never holds one it does not use. Its field errors go under
-// the field (RF-18); any other is a notice.
+// RF-05 · RF-08 · the dialog's save: creates without a case, edits with one. The dialog
+// shows its own errors (CaseFormDialog.tsx).
 export const useSaveCase = (item?: Case) =>
   useCaseMutation(
     async (input: CaseInput) => {
@@ -92,7 +86,7 @@ export const useSaveCase = (item?: Case) =>
         : api.post<Case>('/cases', input)
       return (await request).data
     },
-    { placedByForm: placedOnCaseForm },
+    { formHandlesErrors: true },
   )
 
 // RF-08 · closing and reopening, from the case page's button
@@ -102,9 +96,8 @@ export const useCaseStatus = (id: string) =>
       (await api.patch<Case>(casePath(id), { status })).data,
   )
 
-// RF-12 · a fresh link on every click, handed to the browser at once. It is signed as an
-// attachment, so the browser saves the file and the page stays; the person never sees the
-// link, nor that it lasts 60 seconds.
+// RF-12 · a fresh link on every click. Signed as an attachment, so the browser saves the
+// file and the page stays.
 export const useDownloadFile = (id: string) =>
   useMutation({
     mutationFn: async () =>
@@ -116,9 +109,8 @@ export const useDownloadFile = (id: string) =>
     onSuccess: ({ downloadUrl }) => window.location.assign(downloadUrl),
   })
 
-// RF-09 · the lists refresh. The case's own entry is marked stale, not removed: removed
-// while its page is still open, the page would ask for it again — and get a 404 — before
-// the move to the list completes. Stale, it is asked for only if someone returns to it.
+// RF-09 · the lists refresh. The case is marked stale, not removed: removed, its page — still
+// open while it moves to the list — would ask for it again and flash a 404.
 export function useDeleteCase(id: string) {
   const queryClient = useQueryClient()
 

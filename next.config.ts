@@ -5,9 +5,8 @@ const nextConfig: NextConfig = {
   // runs it. This repository's CLAUDE.md is written by hand.
   agentRules: false,
 
-  // The proxy (ADR-0007): the browser only ever calls its own origin, so the session
-  // cookie is first-party and there is no CORS. API_URL is read here, on Next's server —
-  // never NEXT_PUBLIC_, which would inline the API origin into the client bundle.
+  // The proxy (ADR-0007): the browser only calls its own origin — first-party cookie, no
+  // CORS. API_URL, never NEXT_PUBLIC_: that prefix would publish it in the bundle.
   async rewrites() {
     return [
       { source: '/api/:path*', destination: `${process.env.API_URL}/:path*` },

@@ -9,31 +9,30 @@ import {
 import { CircleAlert, CircleCheck } from 'lucide-react'
 import { useState } from 'react'
 import { Toaster, type ToasterProps } from 'sonner'
-import {
-  type ApiError,
-  isNetworkError,
-  isUnauthenticated,
-  toApiError,
-} from '@/lib/api'
+import { isNetworkError, isUnauthenticated } from '@/lib/api'
 import { notifyError } from '@/lib/notify'
 import { goToLogin } from '@/lib/session'
 
-// What a mutation can say about itself: which errors its form places on screen — under a
-// field, or inside the form. Those get no notice; every other error does (RF-18, RF-19).
+// Where a failed request ends up:
+//   · 401, anywhere          → goToLogin(), no notice
+//   · a failed action        → a notice, from the MutationCache below (RF-19)
+//   · …from a form           → the form shows it itself: under a field, or a notice
+//                              (meta.formHandlesErrors keeps this one from adding a second)
+//   · a failed load          → no notice: the screen shows its own error state (RF-15)
+
+// Lets a mutation carry `meta: { formHandlesErrors: true }`, typed
 declare module '@tanstack/react-query' {
   interface Register {
-    mutationMeta: { placedByForm?: (error: ApiError) => boolean }
+    mutationMeta: { formHandlesErrors?: boolean }
   }
 }
 
-// RF-14 · a 401 on any query leaves for the login; on a mutation, the handler below does
-const toLoginOn401 = (error: unknown) => {
+const leaveOn401 = (error: unknown) => {
   if (isUnauthenticated(error)) goToLogin()
 }
 
-// RF-19 · the notices, as mockup screens 17 and 25 draw them: a line icon, the message in
-// bold, the code under it, the × on the right. Unstyled: sonner only places, stacks and
-// animates them, so these classes are the whole look.
+// RF-19 · the notices as mockup screens 17 and 25 draw them. Unstyled: these classes are the
+// whole look; sonner only places and animates them.
 const NOTICE_ICONS: ToasterProps['icons'] = {
   success: <CircleCheck className="size-5 text-accent-foreground" />,
   error: <CircleAlert className="size-5 text-destructive" />,
@@ -61,21 +60,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
-        queryCache: new QueryCache({ onError: toLoginOn401 }),
+        queryCache: new QueryCache({ onError: leaveOn401 }),
         mutationCache: new MutationCache({
-          // RF-19 · every failed action's notice, from one place: a new action cannot
-          // forget it, and it shows even if the screen that started it is gone
-          // A 401 gets none: the page is already leaving for the login.
+          // Runs for every failed action, even if its screen is already gone
           onError: (error, _variables, _result, mutation) => {
-            if (isUnauthenticated(error)) return goToLogin()
-            const err = toApiError(error)
-            if (!mutation.meta?.placedByForm?.(err)) notifyError(err)
+            leaveOn401(error)
+            if (!mutation.meta?.formHandlesErrors) notifyError(error)
           },
         }),
         defaultOptions: {
-          // RF-19 · with the browser offline, a request is still sent, fails at once and
-          // shows NETWORK_ERROR. TanStack's default pauses it until the connection returns:
-          // an upload would sit at 0 % with nothing said.
+          // RF-19 · offline, fail at once with NETWORK_ERROR. TanStack's default would pause
+          // the request: an upload would sit at 0 % with nothing said.
           mutations: { networkMode: 'always' },
           queries: {
             networkMode: 'always',

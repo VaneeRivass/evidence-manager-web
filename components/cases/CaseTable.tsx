@@ -6,11 +6,8 @@ import type { Case } from '@/hooks/useCases'
 import { formatSize, formatWhen } from '@/lib/format'
 import { FileIcon, StatusPill } from './CaseBadges'
 
-// Mockup screen 3. The whole row opens the case on click, which is what people expect of a
-// list. The title stays a real <a>, so the keyboard and screen readers reach it too.
-// On a phone (mockup screen 20, option A) the four columns do not fit: the date goes, and
-// the file shows as its icon alone. The layout is fixed there, so a long description is cut
-// inside its column instead of pushing the others out of the card.
+// Mockup screen 3. The whole row opens the case; the title stays a real <a> for the keyboard.
+// On a phone (screen 20) the date goes and the file shows as its icon alone.
 export function CaseTable({ items }: { items: Case[] }) {
   const router = useRouter()
 

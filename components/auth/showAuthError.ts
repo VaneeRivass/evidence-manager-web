@@ -1,30 +1,29 @@
-import type { UseFormReturn } from 'react-hook-form'
 import { toApiError } from '@/lib/api'
-import { placeFieldErrors, placedOnCredentialsForm } from '@/lib/formErrors'
+import { type FormErrorTarget, showFieldErrors } from '@/lib/formErrors'
 import { message } from '@/lib/messages.es'
 import { CREDENTIAL_FIELDS, type Credentials } from '@/lib/schemas'
 
-type Form = Pick<UseFormReturn<Credentials>, 'setError' | 'setFocus'>
+// RF-18 · the errors the sign-in forms show themselves. False for any other: the caller
+// shows a notice.
+export function showAuthError(
+  error: unknown,
+  form: FormErrorTarget<Credentials>,
+): boolean {
+  if (showFieldErrors(error, CREDENTIAL_FIELDS, form)) return true
 
-// Where an API error renders on the sign-in forms — requirements, RF-18: under its field,
-// or above the button when it concerns the whole form. Only the errors
-// placedOnCredentialsForm names; any other is a notice, from the query client.
-export function showAuthError(error: unknown, form: Form) {
-  const err = toApiError(error)
-  if (!placedOnCredentialsForm(err)) return
+  const { code } = toApiError(error)
 
-  if (placeFieldErrors(err, CREDENTIAL_FIELDS, form)) return
-
-  if (err.code === 'EMAIL_TAKEN') {
-    form.setError(
-      'email',
-      { message: message(err.code) },
-      { shouldFocus: true },
-    )
-    return
+  if (code === 'EMAIL_TAKEN') {
+    form.setError('email', { message: message(code) }, { shouldFocus: true })
+    return true
   }
 
-  // INVALID_CREDENTIALS. The API does not say which field failed, on purpose (RF-02)
-  form.setError('root', { message: message(err.code) })
-  form.setFocus('password')
+  if (code === 'INVALID_CREDENTIALS') {
+    // Above the button: the API does not say which field failed, on purpose (RF-02)
+    form.setError('root', { message: message(code) })
+    form.setFocus('password')
+    return true
+  }
+
+  return false
 }

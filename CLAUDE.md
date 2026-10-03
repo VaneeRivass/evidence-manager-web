@@ -52,9 +52,8 @@ app/
                          layout. It renders the screen itself — notFound() would drop
                          the top bar
   layout.tsx
-  providers.tsx          TanStack Query client and the notices' Toaster. Every failed
-                         action's notice comes from here, not from each button; a form
-                         only says which errors it places on its fields (meta)
+  providers.tsx          TanStack Query client and the notices' Toaster. Its opening comment
+                         maps where every failed request ends up (RF-14, RF-19)
 components/
   ui/                    shadcn — do not lint, do not reformat
   FormField.tsx          label, input and the error under it — every form
@@ -71,7 +70,7 @@ lib/
   messages.es.ts         error code → Spanish text
   notify.tsx             the floating notices, error and success (RF-19)
   session.ts             goToLogin: a full page load, which drops the cache (RF-04, RF-14)
-  formErrors.ts          puts an API's field errors on a form's own fields (RF-18)
+  formErrors.ts          showFieldErrors: an API's field errors on a form's own fields (RF-18)
   caseFilters.ts         the list's filter and ordering, to and from the address
   format.ts              dates and sizes in Spanish, with Intl
 proxy.ts                 route guard (Next 16 renamed middleware.ts to proxy.ts).
@@ -194,7 +193,8 @@ Few and well chosen, on what a person sees and on rules that are cheap to break:
 |---|---|
 | The list: loading, empty, error, and with cases | `CaseList.test.tsx` |
 | The file input rejects a wrong type or an oversized file **without calling the API** | `EvidencePanel.test.tsx` |
-| Every failed action gets a notice, except the errors a form places itself — even once the form has closed | `app/providers.test.tsx` |
+| An action without a form gets a notice; a 401 signs out with none | `app/providers.test.tsx` |
+| A form shows a field error under its field and anything else as a notice, and cannot be closed while saving | `CaseFormDialog.test.tsx` |
 | The rules copied from the API: file type and size at the limit, title and description lengths, password bytes | `lib/files.test.ts`, `lib/schemas.test.ts` |
 | Sizes as a person reads them | `lib/format.test.ts` |
 

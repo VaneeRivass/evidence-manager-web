@@ -15,9 +15,8 @@ import { formatSize } from '@/lib/format'
 import { notifySuccess } from '@/lib/notify'
 import { FileIcon, StatusPill } from './CaseBadges'
 
-// RF-20 · mockup screen 16. Names what is lost — the case, by its own title and
-// description, and its file when it has one — and says it cannot be undone. A generic
-// "are you sure?" is not enough.
+// RF-20 · mockup screen 16: names what is lost — the case and its file — and that it cannot
+// be undone
 export function DeleteCaseDialog({
   item,
   open,

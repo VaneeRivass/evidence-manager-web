@@ -1,8 +1,8 @@
 import type { Params } from './api'
+import { formatSize } from './format'
 
-// RF-17 · the evidence the API accepts, copied from its .env.example by hand: the browser
-// cannot ask for the limits before a request. The API still decides (RNF-04) — if an
-// environment differs, its own error reaches the person as a notice (requirements, RF-17).
+// RF-17 · the evidence the API accepts, copied from its .env.example. The API still decides
+// (RNF-04): if they ever differ, its own error arrives as a notice.
 
 // MIME type → the name a person knows it by. The order is the order they read it in.
 const FILE_TYPES: Record<string, string> = {
@@ -29,9 +29,8 @@ export const listFileTypes = (types: string[]) =>
 
 export const ALLOWED_FILES = listFileTypes(Object.keys(FILE_TYPES))
 
-// Before any request: the code and parameters of what is wrong with the file, in the
-// API's own codes so lib/messages.es.ts words them. A dropped file skips the picker's
-// accept filter, so the type is checked here too.
+// Before any request: what is wrong with the file, in the API's own codes. A dropped file
+// skips the picker's accept filter, so the type is checked here too.
 export function checkFile(file: File): { code: string; params: Params } | null {
   if (!fileLabel(file.type)) {
     return { code: 'FILE_TYPE_NOT_ALLOWED', params: { name: file.name } }
@@ -44,3 +43,7 @@ export function checkFile(file: File): { code: string; params: Params } | null {
   }
   return null
 }
+
+// «PDF de 2,4 MB». A type our copied list does not know reads «Archivo de 2,4 MB».
+export const describeFile = (type: string | null, size: number) =>
+  `${fileLabel(type) ?? 'Archivo'} de ${formatSize(size)}`

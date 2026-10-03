@@ -1,9 +1,8 @@
 import * as z from 'zod'
 import { message } from './messages.es'
 
-// Mirrors evidence-manager-api/src/modules/auth/auth.schema.ts by hand: the repositories
-// are independent (requirements, known limitations). Errors are written through the same
-// table as the API's codes, so the browser and the server say the same thing.
+// The API's rules (auth.schema.ts, cases.schema.ts), copied: the repositories are separate.
+// Messages come from the same table as the API's codes, so both say the same thing.
 
 // Each limit is written once and feeds both the rule and its message, so they cannot
 // drift apart. The values are the API's (RF-01a, RF-01b).
@@ -19,19 +18,18 @@ const email = z
   .toLowerCase()
   .pipe(z.email(message('INVALID_FORMAT')))
 
-// RF-01b · 8 to 72 BYTES, as the API counts them. The API uses Node's Buffer, which does
-// not exist in the browser; TextEncoder gives the same UTF-8 length. Counting characters
-// instead would let through a password with accents or emoji that the API then rejects.
-const bytes = (value: string) => new TextEncoder().encode(value).length
+// RF-01b · the API limits bytes, not characters: «ñ» is 2. TextEncoder counts them as
+// Node's Buffer does.
+const utf8Length = (value: string) => new TextEncoder().encode(value).length
 
 const newPassword = z
   .string()
   .refine(
-    (value) => bytes(value) >= PASSWORD_MIN,
+    (value) => utf8Length(value) >= PASSWORD_MIN,
     message('TOO_SHORT', { min: PASSWORD_MIN }),
   )
   .refine(
-    (value) => bytes(value) <= PASSWORD_MAX,
+    (value) => utf8Length(value) <= PASSWORD_MAX,
     message('TOO_LONG', { max: PASSWORD_MAX }),
   )
 
@@ -49,10 +47,7 @@ export type Credentials = z.infer<typeof loginSchema>
 // The form's fields, from the schema itself: where an API error on one of them goes (RF-18)
 export const CREDENTIAL_FIELDS = loginSchema.keyof().options
 
-// RF-05 · a case's title and description, the API's Zod rule copied: trimmed, then 1 to the
-// column's size. Zod 4's .max() counts characters, not .length: an emoji is 1, as in the
-// database column, though JavaScript's .length says 2 — whatever the browser accepts, the API
-// accepts too (pinned by schemas.test.ts).
+// RF-05 · the API's rule copied: trimmed, then 1 to the column's size, in characters
 export const TITLE_MAX = 120
 export const DESCRIPTION_MAX = 2000
 
@@ -69,5 +64,9 @@ export const caseSchema = z.object({
 })
 
 export type CaseInput = z.infer<typeof caseSchema>
+
+// Characters as Zod 4's .max() counts them — code points: «😀» is 1, though its .length is 2
+// (pinned by schemas.test.ts)
+export const characterCount = (value: string) => [...value].length
 
 export const CASE_FIELDS = caseSchema.keyof().options

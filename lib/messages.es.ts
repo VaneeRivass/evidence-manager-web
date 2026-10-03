@@ -26,9 +26,8 @@ const messages: Record<string, (params: Params) => string> = {
   EMAIL_TAKEN: () => 'Ya existe una cuenta con este correo.',
   INVALID_CREDENTIALS: () => 'El correo o la contraseña no son correctos.',
 
-  // RF-17 · with a name, the browser rejected the file next to the drop area (mockup screen
-  // 12); without one, the API did, in a notice — with its own list, which is the one that
-  // binds (RF-10: «image/jpeg, image/png, application/pdf»)
+  // RF-17 · with a name, the browser rejected it (mockup screen 12); without one, the API
+  // did, with its own list (RF-10)
   FILE_TYPE_NOT_ALLOWED: ({ name, allowed }) =>
     `${name ? `«${name}»` : 'Este tipo de archivo'} no se puede adjuntar: solo se admiten ${
       allowed
@@ -63,9 +62,8 @@ const messages: Record<string, (params: Params) => string> = {
 // The label of the code shown under an operation error's message (mockup screen 24)
 export const CODE_LABEL = 'Código de error'
 
-// A code with no sentence of its own: the five only a bug in this application can trigger
-// (requirements, RF-19). Trying again would fail the same way, so it asks for the code to be
-// passed on instead — and does not blame the server for what may have been the request.
+// The five codes only a bug here can trigger (RF-19): retrying would fail the same way, so
+// it asks for the code to be passed on
 const fallback = () =>
   'Algo salió mal. Si vuelve a pasar, avisa con este código.'
 

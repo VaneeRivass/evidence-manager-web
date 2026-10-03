@@ -9,7 +9,7 @@ import { FormField, ariaFor, inputClass } from '@/components/FormField'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useLogin, useRegister } from '@/hooks/useAuth'
-import { notifySuccess } from '@/lib/notify'
+import { notifyError, notifySuccess } from '@/lib/notify'
 import { type Credentials, loginSchema, registerSchema } from '@/lib/schemas'
 import { showAuthError } from './showAuthError'
 
@@ -43,31 +43,28 @@ export function AuthForm({ mode }: { mode: keyof typeof modes }) {
   const register = useRegister()
   const mutation = mode === 'login' ? login : register
 
+  const form = useForm<Credentials>({ resolver: zodResolver(copy.schema) })
   const {
     register: field,
     handleSubmit,
-    setError,
-    setFocus,
     clearErrors,
     formState: { errors },
-  } = useForm<Credentials>({ resolver: zodResolver(copy.schema) })
+  } = form
 
-  const onSubmit = handleSubmit((values) =>
-    mutation.mutate(values, {
-      onSuccess: () => {
-        if (mode === 'login') {
-          router.replace('/cases')
-          return
-        }
-        // RF-13 · registering does not sign the person in
-        notifySuccess('Cuenta creada. Ya puedes entrar.')
-        router.replace('/login')
-      },
-      onError: (error) => {
-        showAuthError(error, { setError, setFocus })
-      },
-    }),
-  )
+  const onSubmit = handleSubmit(async (values) => {
+    try {
+      await mutation.mutateAsync(values)
+      if (mode === 'login') {
+        router.replace('/cases')
+        return
+      }
+      // RF-13 · registering does not sign the person in
+      notifySuccess('Cuenta creada. Ya puedes entrar.')
+      router.replace('/login')
+    } catch (error) {
+      if (!showAuthError(error, form)) notifyError(error)
+    }
+  })
 
   return (
     <form

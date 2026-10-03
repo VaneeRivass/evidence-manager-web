@@ -1,6 +1,5 @@
-// RF-06 · the list's filter and ordering, read from and written to the address. The
-// address is typed by people and the API answers 400 to a value it does not know, so
-// anything unrecognised is dropped and the default used instead (RF-15).
+// RF-06 · the list's filter and ordering, kept in the address. Anyone can type it, so an
+// unknown value falls back to the default instead of reaching the API as a 400.
 
 export type CaseStatus = 'OPEN' | 'CLOSED'
 export type CaseSort = 'updatedAt' | 'createdAt'
