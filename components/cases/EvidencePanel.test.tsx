@@ -1,9 +1,15 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Case } from '@/lib/cases'
 import { api, uploadToStorage } from '@/lib/api'
 import { EvidencePanel } from './EvidencePanel'
+
+vi.mock('sonner', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('sonner')>()
+  return { ...actual, toast: { error: vi.fn(), success: vi.fn() } }
+})
 
 // RF-17 · a wrong file is rejected in the browser, before any request. Every way out of
 // the browser is substituted, so "no request" means none of them was called.
@@ -85,5 +91,25 @@ describe('EvidencePanel', () => {
       screen.queryByRole('button', { name: 'Adjuntar' }),
     ).not.toBeInTheDocument()
     expectNoRequest()
+  })
+
+  // RF-17 · RF-19 · the upload is three slow calls: it announces success when it finishes
+  it('announces «Evidencia adjuntada» once the upload completes', async () => {
+    vi.mocked(api.post)
+      .mockResolvedValueOnce({ uploadUrl: 'https://storage/x', key: 'k1' })
+      .mockResolvedValueOnce({
+        ...caseWithoutFile,
+        fileName: 'denuncia.pdf',
+        fileSize: 1024,
+        fileType: 'application/pdf',
+      })
+    vi.mocked(uploadToStorage).mockResolvedValue(undefined)
+
+    choose(fileOf('denuncia.pdf', 'application/pdf', 1024))
+    fireEvent.click(screen.getByRole('button', { name: 'Adjuntar' }))
+
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith('Evidencia adjuntada'),
+    )
   })
 })

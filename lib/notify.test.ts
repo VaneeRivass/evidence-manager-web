@@ -33,6 +33,24 @@ describe('notifyError', () => {
   })
 })
 
+describe('notifyError · the code decides the sentence', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it.each([
+    ['EMAIL_TAKEN', /Ya existe una cuenta con este correo/],
+    ['INVALID_CREDENTIALS', /El correo o la contraseña no son correctos/],
+    ['UPLOAD_FAILED', /La subida se interrumpió/],
+    ['FILE_ALREADY_ATTACHED', /ya tiene un archivo/],
+    ['INTERNAL_ERROR', /Algo falló en el servidor/],
+  ])('shows the sentence for %s', (code, sentence) => {
+    notifyError(new ApiError(code))
+
+    expect(vi.mocked(toast.error).mock.calls[0][0]).toMatch(sentence)
+  })
+})
+
 describe('notifySuccess', () => {
   it('shows the message it is given', () => {
     notifySuccess('Caso eliminado')

@@ -66,6 +66,9 @@ export const CODE_LABEL = 'Código de error'
 // reads is decided in this file and nowhere else (RF-13, RF-16).
 export const successMessages = {
   registered: 'Cuenta creada. Ya puedes entrar.',
+  caseCreated: 'Caso creado',
+  caseSaved: 'Cambios guardados',
+  evidenceAttached: 'Evidencia adjuntada',
   caseDeleted: 'Caso eliminado',
 }
 

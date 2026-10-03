@@ -22,7 +22,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { useSaveCase } from '@/hooks/useCases'
 import type { Case } from '@/lib/cases'
 import { showFieldErrors } from '@/lib/formErrors'
-import { notifyError } from '@/lib/notify'
+import { successMessages } from '@/lib/messages.es'
+import { notifyError, notifySuccess } from '@/lib/notify'
 import {
   CASE_FIELDS,
   type CaseInput,
@@ -60,7 +61,9 @@ export function CaseFormDialog({
         // No corner X: «Cancelar» and Esc already close it, and the X's built-in label
         // is in English
         showCloseButton={false}
-        className="gap-5 rounded-[20px] p-6 sm:max-w-md"
+        // Never taller than the screen: on a short viewport the dialog scrolls instead of
+        // leaving its buttons below the fold
+        className="max-h-[calc(100dvh-2rem)] gap-5 overflow-y-auto rounded-[20px] p-6 sm:max-w-md"
       >
         {/* Inside the content, so the form mounts afresh on every opening */}
         <CaseForm item={item} save={save} onDone={() => onOpenChange(false)} />
@@ -110,6 +113,9 @@ function CaseForm({
     try {
       const saved = await save.mutateAsync(values)
       onDone()
+      notifySuccess(
+        item ? successMessages.caseSaved : successMessages.caseCreated,
+      )
       // Creating opens the new case, where the evidence is attached (RF-16)
       if (!item) router.push(`/cases/${saved.id}`)
     } catch (error) {
@@ -156,7 +162,9 @@ function CaseForm({
           rows={4}
           placeholder="Qué pasó, cuándo y a quién afecta…"
           {...ariaFor('description', errors.description?.message)}
-          className={cn(fieldClass, 'min-h-28 py-2.5')}
+          // ui/textarea grows with its text (field-sizing-content): capped here so a long
+          // description scrolls inside the field instead of pushing the buttons off screen
+          className={cn(fieldClass, 'min-h-28 max-h-72 overflow-y-auto py-2.5')}
           {...register('description')}
         />
       </FormField>

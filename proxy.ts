@@ -8,15 +8,21 @@ const SESSION_COOKIE = 'session' // the API's name for it (src/modules/auth/sess
 // What is public is listed, so a page added later is private by default
 const PUBLIC_PAGES = ['/login', '/register']
 
+const EXPIRED_MARKER = 'expirada'
+
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname, searchParams } = request.nextUrl
   const signedIn = request.cookies.has(SESSION_COOKIE)
   const isPublic = PUBLIC_PAGES.includes(pathname)
+  // A session the API rejected: the cookie may still be present, so without this the guard
+  // would bounce /login back to /cases for ever. The marker lets that one login through.
+  const sessionExpired =
+    pathname === '/login' && searchParams.has(EXPIRED_MARKER)
   const redirectTo = (path: string) =>
     NextResponse.redirect(new URL(path, request.url))
 
   if (pathname === '/') return redirectTo(signedIn ? '/cases' : '/login')
-  if (isPublic && signedIn) return redirectTo('/cases')
+  if (isPublic && signedIn && !sessionExpired) return redirectTo('/cases')
   if (!isPublic && !signedIn) return redirectTo('/login')
   return NextResponse.next()
 }
