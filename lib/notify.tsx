@@ -20,7 +20,7 @@ export function notifyError(error: unknown) {
   })
 }
 
-// A success notice, only where the result is not on screen (RF-16, RF-19)
+// A success notice, only where the change is worth confirming explicitly (RF-16, RF-19)
 export function notifySuccess(text: string) {
   toast.success(text)
 }

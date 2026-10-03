@@ -28,7 +28,8 @@ declare module '@tanstack/react-query' {
 }
 
 const leaveOn401 = (error: unknown) => {
-  if (isUnauthenticated(error)) goToLogin()
+  // With the marker: a rejected cookie may still be there, so the plain /login would loop
+  if (isUnauthenticated(error)) goToLogin(true)
 }
 
 // The notices as mockup screens 17 and 25 draw them. Unstyled: these classes are the whole

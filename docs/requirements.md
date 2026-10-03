@@ -95,6 +95,11 @@ login and the login back to `/cases`. The client cannot delete an `httpOnly` coo
 so the API does: a `401` for a rejected cookie arrives with that cookie already cleared (API
 `RF-03`). The guard never asks the API anything: it only looks at whether the cookie is there.
 
+**And a fallback, so the loop does not depend on the API.** If a rejected cookie stays in the
+browser for any reason, the client sends the person to `/login?expirada=1` and the guard lets
+that one login through even with the cookie present. Testing made the API-deletes-the-cookie
+path fail, and with no fallback the login never loaded.
+
 **Signing out** (`RF-04`) is the same path: the API clears the cookie and a full page load
 returns to the login. That load is what empties the client's cache, so the next person on
 the same browser never sees the previous one's data.
@@ -170,9 +175,9 @@ este caso* — instead of keeping buttons that fail the same way. A refetch that
 keeps the case on screen. **Not after `NETWORK_ERROR`**: the change never reached the server,
 so nothing changed, and asking again would only fail the same way.
 
-**Success notices** only where the result is not on screen: deleting, which leaves the case.
-Created, edited, closed or reopened, the change is already visible where the person is
-looking.
+**Success notices** only where the change is worth confirming explicitly. Deleting a case,
+attaching evidence and saving a case announce success; closing or reopening does not, because
+the status pill changes where the person is already looking.
 
 ### RF-17 · The upload, from the client's side
 
@@ -305,9 +310,11 @@ second button in the corner would do the same, farther away. Retry is a button o
 nothing else could repeat the request: the error screens of the list and of a case (mockup
 screens 6 and 22), where the error is the whole page.
 
-Only two actions announce success: deleting a case (*Caso eliminado*), because the case
-leaves the screen, and creating an account (*Cuenta creada. Ya puedes entrar.*), because it
-lands on the sign-in page. Every other change is already visible where it happened.
+Four actions announce success: deleting a case (*Caso eliminado*), because the case leaves the
+screen; creating an account (*Cuenta creada. Ya puedes entrar.*), because it lands on the
+sign-in page; attaching evidence (*Evidencia adjuntada*), because the upload is three slow
+calls; and saving a case (*Caso creado* / *Cambios guardados*). Closing or reopening a case
+announces nothing: the pill changes in place.
 
 **Who shows a failed action's error.** A form shows its own: under the field when the API
 names one of its fields, as a notice otherwise. While a form's request is on its way the

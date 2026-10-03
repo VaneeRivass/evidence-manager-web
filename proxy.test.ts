@@ -41,4 +41,10 @@ describe('proxy', () => {
   it('lets a signed-out visitor reach the login', () => {
     expect(location(proxy(request('/login', false)))).toBeNull()
   })
+
+  // RF-14 · a rejected cookie may still be in the browser, so the marker is the only way the
+  // login is reachable instead of looping back to /cases
+  it('lets the login through when the session was rejected, even with a cookie', () => {
+    expect(location(proxy(request('/login?expirada=1', true)))).toBeNull()
+  })
 })

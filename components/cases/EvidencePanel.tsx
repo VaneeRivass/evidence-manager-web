@@ -4,7 +4,8 @@ import { useState } from 'react'
 import type { Case } from '@/lib/cases'
 import { useFileUpload } from '@/hooks/useFileUpload'
 import { checkFile } from '@/lib/files'
-import { message } from '@/lib/messages.es'
+import { message, successMessages } from '@/lib/messages.es'
+import { notifySuccess } from '@/lib/notify'
 import { EvidenceAttached } from './EvidenceAttached'
 import { EvidenceChosenFile } from './EvidenceChosenFile'
 import { EvidenceDropArea } from './EvidenceDropArea'
@@ -46,7 +47,12 @@ export function EvidencePanel({ item }: { item: Case }) {
       <EvidenceChosenFile
         file={file}
         onChooseAnother={() => setFile(null)}
-        onAttach={() => upload.attach(file, () => setFile(null))}
+        onAttach={() =>
+          upload.attach(file, () => {
+            notifySuccess(successMessages.evidenceAttached)
+            setFile(null)
+          })
+        }
       />
     )
   }

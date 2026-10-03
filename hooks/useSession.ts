@@ -42,6 +42,6 @@ export function useSession() {
 export function useLogout() {
   return useMutation({
     mutationFn: () => api.post('/auth/logout'),
-    onSuccess: goToLogin,
+    onSuccess: () => goToLogin(),
   })
 }
