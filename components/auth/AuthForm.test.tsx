@@ -88,4 +88,17 @@ describe('AuthForm', () => {
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledOnce())
   })
+
+  // RF-14 · a rejected session lands here with the marker: the login says why
+  it('tells the person their session ended when they arrive with the marker', () => {
+    render(
+      <Providers>
+        <AuthForm mode="login" expired />
+      </Providers>,
+    )
+
+    expect(
+      screen.getByText('Tu sesión ha caducado. Vuelve a entrar.'),
+    ).toBeInTheDocument()
+  })
 })

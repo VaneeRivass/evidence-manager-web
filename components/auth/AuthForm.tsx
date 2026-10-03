@@ -9,7 +9,7 @@ import { FormField, ariaFor, inputClass } from '@/components/common/FormField'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useLogin, useRegister } from '@/hooks/useSession'
-import { successMessages } from '@/lib/messages.es'
+import { message, successMessages } from '@/lib/messages.es'
 import { notifyError, notifySuccess } from '@/lib/notify'
 import { type Credentials, loginSchema, registerSchema } from '@/lib/schemas'
 import { showAuthError } from './showAuthError'
@@ -37,7 +37,14 @@ const modes = {
   },
 } as const
 
-export function AuthForm({ mode }: { mode: keyof typeof modes }) {
+export function AuthForm({
+  mode,
+  expired = false,
+}: {
+  mode: keyof typeof modes
+  // A rejected session brought the person here with the «expirada» marker (RF-14)
+  expired?: boolean
+}) {
   const copy = modes[mode]
   const router = useRouter()
   const login = useLogin()
@@ -81,6 +88,16 @@ export function AuthForm({ mode }: { mode: keyof typeof modes }) {
           <p className="mt-1 text-sm text-muted-foreground">{copy.subtitle}</p>
         )}
       </div>
+
+      {expired && !errors.root && (
+        <p
+          role="status"
+          className="flex items-center gap-2.5 rounded-[14px] border bg-muted px-3.5 py-3 text-sm font-semibold text-foreground"
+        >
+          <CircleAlert className="size-4.5 shrink-0 text-muted-foreground" />
+          {message('UNAUTHENTICATED')}
+        </p>
+      )}
 
       <FormField id="email" label="Correo" error={errors.email?.message}>
         <Input

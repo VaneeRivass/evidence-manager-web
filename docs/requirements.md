@@ -97,8 +97,9 @@ so the API does: a `401` for a rejected cookie arrives with that cookie already 
 
 **And a fallback, so the loop does not depend on the API.** If a rejected cookie stays in the
 browser for any reason, the client sends the person to `/login?expirada=1` and the guard lets
-that one login through even with the cookie present. Testing made the API-deletes-the-cookie
-path fail, and with no fallback the login never loaded.
+that one login through even with the cookie present. The login says why: *Tu sesión ha
+caducado. Vuelve a entrar.* Testing made the API-deletes-the-cookie path fail, and with no
+fallback the login never loaded.
 
 **Signing out** (`RF-04`) is the same path: the API clears the cookie and a full page load
 returns to the login. That load is what empties the client's cache, so the next person on
