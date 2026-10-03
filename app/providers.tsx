@@ -14,7 +14,7 @@ import { notifyError } from '@/lib/notify'
 import { goToLogin } from '@/lib/session'
 
 // Where a failed request ends up:
-//   · 401, anywhere          → goToLogin(), no notice
+//   · 401, anywhere          → the login. The API already cleared the rejected cookie
 //   · a failed action        → a notice, from the MutationCache below (RF-19)
 //   · …from a form           → the form shows it itself: under a field, or a notice
 //                              (meta.formHandlesErrors keeps this one from adding a second)

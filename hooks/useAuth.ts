@@ -39,9 +39,10 @@ export function useSession() {
   })
 }
 
-const logout = () => api.post('/auth/logout')
-
 // RF-04 · the sign-out button. If it fails the person stays, and the notice says why.
 export function useLogout() {
-  return useMutation({ mutationFn: logout, onSuccess: goToLogin })
+  return useMutation({
+    mutationFn: () => api.post('/auth/logout'),
+    onSuccess: goToLogin,
+  })
 }

@@ -48,10 +48,8 @@ app/
   (app)/layout.tsx       the top bar over every private page
   (app)/cases/page.tsx
   (app)/cases/[id]/page.tsx
-  (app)/[...slug]/       any other address: the not-found screen, INSIDE the private
-                         layout. It renders the screen itself — notFound() would drop
-                         the top bar
   layout.tsx
+  not-found.tsx          any other address. Wraps itself in (app)/layout to keep the top bar
   providers.tsx          TanStack Query client and the notices' Toaster. Its opening comment
                          maps where every failed request ends up (RF-14, RF-19)
 components/
@@ -69,7 +67,7 @@ lib/
   files.ts               the evidence's allowed types and size, copied from the API (RF-17)
   messages.es.ts         error code → Spanish text
   notify.tsx             the floating notices, error and success (RF-19)
-  session.ts             goToLogin: a full page load, which drops the cache (RF-04, RF-14)
+  session.ts             goToLogin: a full page load, which drops the cache (RF-04)
   formErrors.ts          showFieldErrors: an API's field errors on a form's own fields (RF-18)
   caseFilters.ts         the list's filter and ordering, to and from the address
   format.ts              dates and sizes in Spanish, with Intl
