@@ -15,6 +15,8 @@ const messages: Record<string, (params: Params) => string> = {
   TOO_LONG: ({ max }) => `Máximo ${max} caracteres.`,
   INVALID_FORMAT: () => 'El formato no es válido.',
   INVALID_TYPE: () => 'El valor no es válido.',
+  // A password of only whitespace has its own code, so the message can be true
+  PASSWORD_BLANK: () => 'La contraseña no puede ser solo espacios.',
 
   VALIDATION_ERROR: () => 'Revisa los datos: hay alguno que no es válido.',
   UNAUTHENTICATED: () => 'Tu sesión ha caducado. Vuelve a entrar.',
